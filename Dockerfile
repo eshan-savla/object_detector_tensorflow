@@ -38,12 +38,12 @@ ENTRYPOINT ["/ros_entrypoint.sh"]
 WORKDIR /workspace
 
 # set up the ros node
-COPY object_detection_tensorflow ./object_detection_tensorflow
+COPY object_detector_tensorflow ./object_detector_tensorflow
 
 # deploy the default CNN
 COPY data/* /
 
 ENV PYTHONUNBUFFERED 1
-CMD [ "python", "-m", "object_detection_tensorflow" ]
+CMD [ "python", "-m", "object_detector_tensorflow" ]
 
 STOPSIGNAL SIGINT

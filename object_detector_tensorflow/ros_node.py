@@ -4,6 +4,8 @@ import argparse
 import tensorflow as tf
 import numpy as np
 import rclpy
+from rclpy.time import Time
+from rclpy.duration import Duration
 from rclpy.node import Node
 import cv2
 import os
@@ -12,11 +14,11 @@ from ament_index_python.packages import get_package_share_directory
 from sensor_msgs.msg import Image, RegionOfInterest
 from cv_bridge import CvBridge, CvBridgeError
 
-from object_detection_tensorflow.object_detection import ObjectDetection
-from object_detection_tensorflow.visualization import Visualization
-from object_detection_tensorflow.diagnostics import Diagnostics
-from object_detection_tensorflow.srv import DetectObjects
-from object_detection_tensorflow.msg import Detection
+from object_detector_tensorflow.object_detection import ObjectDetection
+from object_detector_tensorflow.visualization import Visualization
+from object_detector_tensorflow.diagnostics import Diagnostics
+from object_detector_tensorflow.srv import DetectObjects
+from object_detector_tensorflow.msg import Detection
 
 
 class ObjectDetectionNode(Node):
@@ -26,7 +28,7 @@ class ObjectDetectionNode(Node):
                  label_map_path,
                  image_topic,
                  result_topic,
-                 name="object_detection_tensorflow",
+                 name="object_detector_tensorflow",
                  min_probability=0.5,
                  data_timeout=1.5,
                  max_gpu_memory_fraction=None,
@@ -37,7 +39,7 @@ class ObjectDetectionNode(Node):
 
         self.logger = self.get_logger()
 
-        self.collection_timeout = data_timeout
+        self.collection_timeout = Duration(seconds=data_timeout)
         self.min_probability = min_probability
         self.result_image_size = result_image_size
 
@@ -46,6 +48,8 @@ class ObjectDetectionNode(Node):
                                          max_gpu_memory_fraction)
 
         self.visualization = Visualization()
+
+        self.diagnostics = Diagnostics(node=self)
 
         self.subscriber = self.create_subscription(
             Image, image_topic, self._image_handler)
@@ -62,32 +66,37 @@ class ObjectDetectionNode(Node):
     def run(self):
 
         try:
-            self.logger.info("Started service")
+            self.logger.info("Started Node")
 
             rclpy.spin(self)
 
         except KeyboardInterrupt:
-            self.logger.info("Stopped service")
+            self.logger.info("Stopped Node")
 
         self.destroy_node()
         rclpy.shutdown()
 
     def _image_handler(self, msg: Image):
 
+        print("recieved image")
         self.image_msg = msg
 
     def _get_image(self):
 
         image = None
         image_header = None
-        duration = 0
+        duration = Duration(seconds=0)
 
-        self.image_msg = None
+        #self.image_msg = None
 
-        start_time = self.get_clock().now()
+        start_time = self.get_clock()
+        print(start_time)
+        print(type(start_time))
 
         while image is None and duration < self.collection_timeout:
-            if self.image_msg is not None and self.image_msg.header.stamp.to_time() >= start_time:
+            if self.image_msg is not None and Time.from_msg(self.image_msg.header.stamp) >= start_time:
+                print(Time.from_msg(self.image_msg.header.stamp))
+                print(type(Time.from_msg(self.image_msg.header.stamp)))
                 try:
                     image = self.bridge.imgmsg_to_cv2(self.image_msg)
                     image_header = self.image_msg.header
@@ -102,7 +111,9 @@ class ObjectDetectionNode(Node):
 
             duration = self.get_clock().now() - start_time
 
-        self.diagnostics.update("data_acquisition_time", duration)
+            print(duration)
+
+        # self.diagnostics.update("data_acquisition_time", duration.seconds)
 
         return image, image_header
 
@@ -133,20 +144,21 @@ class ObjectDetectionNode(Node):
         try:
             image, image_header = self._get_image()
 
+            print(str(image_header))
+
             start_time = self.get_clock().now()
 
             if image is not None:
-                detected_objects = self._clear(
-                    self._convert_to_ros(
-                        self.detection.run(image, request.roi)))
+                detected_objects = self._convert_to_ros(
+                    self.detection.run(image, request.roi))
 
                 image = self.visualization.draw_detections(
                     image, detected_objects, request.roi)
 
-                self.diagnostics.update(
-                    "last_timestamp_processed", image_header.stamp.to_sec())
-                self.diagnostics.update(
-                    "detection_time", self.get_clock().now() - start_time)
+                # self.diagnostics.update(
+                #     "last_timestamp_processed", image_header.stamp.to_sec())
+                # self.diagnostics.update(
+                #     "detection_time", self.get_clock().now() - start_time)
 
                 self._publish_image(image)
 
@@ -163,30 +175,48 @@ class ObjectDetectionNode(Node):
             self.logger.error("Caught {} during detection: {}".format(type(e), str(e)) +
                               "\nPlease make sure the given ROI dimensions fit the image size!")
 
-        except Exception as e:
-            self.logger.error("Caught {} during detection: {}".format(
-                type(e), str(e)))
+        # except Exception as e:
+        #     self.logger.error("Caught {} during detection: {}".format(
+        #         type(e), str(e)))
 
         # for detection in detected_objects:
         #     detection.header.stamp = self.get_clock().now().to_msg()
         #     detection.header.frame_id = "object_detection"
 
-        response.detections = detected_objects
-        response.image = image
+        #response.detections = detected_objects
+        #response.image = image
 
         return response
 
-    def _clear(self, detections):
+    # def _clear(self, detections):
 
-        cleared_detections = []
+    #     cleared_detections = []
 
-        for detection in detections:
-            if detection.probability >= self.min_probability:
-                cleared_detections.append(detection)
+    #     for detection in detections:
+    #         if detection.probability >= self.min_probability:
+    #             cleared_detections.append(detection)
 
-        return cleared_detections
+    #     return cleared_detections
 
     def _convert_to_ros(self, raw_detections):
+        detections = []
+
+        for detection in raw_detections:
+            if detection["probability"] >= self.min_probability:
+
+                bounding_box = RegionOfInterest(
+                    y_offset=detection["bounding_box"]["y_offset"],
+                    x_offset=detection["bounding_box"]["x_offset"],
+                    height=detection["bounding_box"]["height"],
+                    width=detection["bounding_box"]["width"])
+
+                detections.append(Detection(
+                    class_id=detection["class_id"],
+                    class_name=detection["class_name"],
+                    probability=detection["probability"],
+                    bounding_box=bounding_box))
+
+        return detections
 
 
 def main(args=None):
@@ -195,7 +225,7 @@ def main(args=None):
 
     parser = argparse.ArgumentParser(
         description='Object Detection TensorFlow ROS node')
-    parser.add_argument('-n', '--node_name', default="object_detection_tensorflow",
+    parser.add_argument('-n', '--node_name', default="object_detector_tensorflow",
                         help="ROS node name")
     parser.add_argument('--image_topic', default="/stereo/left/image_rect_color",
                         help="ROS topic to listen for images")
@@ -205,7 +235,7 @@ def main(args=None):
                         help="Text file with class names (one label per line)")
     parser.add_argument('--min_probability', type=float, default=0.99,
                         help="Minimum probability for detections to be reported")
-    parser.add_argument('--data_acquisition_timeout', type=float, default=1.5,
+    parser.add_argument('--data_acquisition_timeout', type=float, default=5,
                         help="Data acquisition timeout in seconds")
     parser.add_argument('--max_gpu_memory_fraction', type=float, default=1.0,
                         help="Limits the GPU memory usage of the TensorFlow model to only a fraction (between 0 and 1)")
@@ -221,9 +251,9 @@ def main(args=None):
     result_topic = f"{args.node_name}/detections"
 
     # may raise PackageNotFoundError
-    package_share_directory = get_package_share_directory("object_detection_tensorflow")
-    saved_model_path = os.path.join(package_share_directory, "..", "..", "lib/object_detection_tensorflow/data/saved_model")
-    label_map_path = os.path.join(package_share_directory, "..", "..", "lib/object_detection_tensorflow/data/label_map.txt")
+    package_share_directory = get_package_share_directory("object_detector_tensorflow")
+    saved_model_path = os.path.join(package_share_directory, "..", "..", "lib/object_detector_tensorflow/data/saved_model")
+    label_map_path = os.path.join(package_share_directory, "..", "..", "lib/object_detector_tensorflow/data/label_map.txt")
 
     ObjectDetectionNode(saved_model_path,  # =args.saved_model_path,
                         label_map_path,  # =args.label_map_path,

@@ -3,10 +3,6 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from sensor_msgs.msg import RegionOfInterest
-
-from object_detection_tensorflow.msg import Detection
-
 
 class ObjectDetection:
 
@@ -44,7 +40,7 @@ class ObjectDetection:
         self.model = tf.saved_model.load(self.saved_model_path)
 
         print("Starting initialization inference.")
-        # self._run_model(np.zeros([1, 960, 1280, 3], dtype=np.uint8))
+        #self._run_model(np.zeros([1, 960, 1280, 3], dtype=np.uint8))
         print("Finished initialization inference.")
 
     def _run_model(self, image: np.ndarray):

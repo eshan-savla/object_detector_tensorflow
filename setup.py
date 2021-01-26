@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'object_detection_tensorflow'
+package_name = 'object_detector_tensorflow'
 
 setup(
     name=package_name,
@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'object_detection = object_detection_tensorflow.ros_node:main'
+            'object_detector = object_detector_tensorflow.ros_node:main'
         ],
     },
 )

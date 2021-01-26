@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from object_detection_tensorflow.srv import DetectObjects
+from object_detector_tensorflow.srv import DetectObjects
 
 import rclpy
 from rclpy.node import Node
