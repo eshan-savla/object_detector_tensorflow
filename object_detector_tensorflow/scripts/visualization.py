@@ -1,9 +1,6 @@
 import numpy as np
 import cv2
 
-from sensor_msgs.msg import RegionOfInterest
-
-
 class Visualization:
 
     def __init__(self,
@@ -21,12 +18,12 @@ class Visualization:
     def draw_detections(self,
                         image: np.ndarray,
                         detections: list,
-                        roi: RegionOfInterest = None):
+                        roi: list = None):
 
         if roi is not None:
             rect = self._roi2rect(roi)
 
-            self._draw_rect(image, rect, self.roi_color)
+            self._draw_rect(image, roi, self.roi_color)
 
         for detection in detections:
             rect = self._roi2rect(detection.rect)
@@ -36,12 +33,12 @@ class Visualization:
 
         return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    def _roi2rect(self, roi: RegionOfInterest):
+    def _roi2rect(self, roi: list):
 
-        return [(roi.x_offset, roi.y_offset),
-                (roi.x_offset, roi.y_offset + roi.height),
-                (roi.x_offset + roi.width, roi.y_offset + roi.height),
-                (roi.x_offset + roi.width, roi.y_offset)]
+        return [(roi[1], roi[0]),
+                (roi[1], roi[0] + roi[2]),
+                (roi[1] + roi[3], roi[0] + roi[2]),
+                (roi[1] + roi[3], roi[0])]
 
     def _draw_rect(self,
                    image: np.ndarray,

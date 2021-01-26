@@ -12,8 +12,7 @@ class ObjectDetection:
                  max_gpu_memory_fraction: float = 1):
 
         self.saved_model_path = saved_model_path
-        self.label_map_path = (label_map_path
-                               if label_map_path is not None else None)
+        self.label_map_path = label_map_path
 
         self.graph = None
         self.session = None
@@ -48,7 +47,8 @@ class ObjectDetection:
         detection_dict = self.model(image)
 
         num = detection_dict['num_detections'][0].numpy().astype(np.int32)
-        classes = detection_dict['detection_classes'][0].numpy().astype(np.uint8)
+        classes = detection_dict['detection_classes'][0].numpy().astype(
+            np.uint8)
         boxes = detection_dict['detection_boxes'][0].numpy()
         scores = detection_dict['detection_scores'][0].numpy()
 
@@ -70,14 +70,14 @@ class ObjectDetection:
 
     def run(self,
             image: np.ndarray,
-            roi: RegionOfInterest = None):
+            roi: list = None):
 
         box_scale = image.shape[:2]
         box_offset = (0, 0)
 
         if roi is not None:
-            image = image[roi.y_offset:roi.y_offset + roi.height,
-                          roi.x_offset:roi.x_offset + roi.width]
+            image = image[roi[0]:roi[2],
+                          roi[1]:roi[3]]
 
             box_offset = (roi.y_offset, roi.x_offset)
 
@@ -87,33 +87,6 @@ class ObjectDetection:
             box = np.multiply(detection["bounding_box"],
                               box_scale).astype(np.uint16)
 
-            bounding_box = {
-                "y_offset": int(box[0] * box_scale[0] + box_offset[0]),
-                "x_offset": int(box[1] * box_scale[0] + box_offset[1]),
-                "height": int((box[2] - box[0]) * box_scale[0]),
-                "width": int((box[3] - box[1]) * box_scale[0])
-            }
-
-            detection["bounding_box"] = bounding_box
+            detection["bounding_box"] = box
 
         return raw_detections
-
-        # detections = []
-
-        # for detection in raw_detections:
-        #     box = np.multiply(detection["bounding_box"],
-        #                       box_scale).astype(np.uint16)
-
-        #     bounding_box = RegionOfInterest(
-        #         y_offset=int(box[0] * box_scale[0] + box_offset[0]),
-        #         x_offset=int(box[1] * box_scale[0] + box_offset[1]),
-        #         height=int((box[2] - box[0]) * box_scale[0]),
-        #         width=int((box[3] - box[1]) * box_scale[0]))
-
-        #     detections.append(Detection(
-        #         class_id=detection["class_id"],
-        #         class_name=detection["class_name"],
-        #         probability=detection["probability"],
-        #         bounding_box=bounding_box))
-
-        # return detections
