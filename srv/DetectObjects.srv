@@ -1,4 +1,0 @@
-sensor_msgs/RegionOfInterest roi
----
-Detection[] detections
-sensor_msgs/Image image
