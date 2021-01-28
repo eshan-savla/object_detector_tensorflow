@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 
+
 class Visualization:
 
     def __init__(self,
@@ -26,8 +27,8 @@ class Visualization:
             self._draw_rect(image, roi, self.roi_color)
 
         for detection in detections:
-            rect = self._roi2rect(detection.rect)
-            text = f"{detection.label} ({int(detection.probability * 100)} %)"
+            rect = self._roi2rect(detection["bounding_box"])
+            text = f"{detection['class_name']} ({int(detection['probability'] * 100)} %)"
 
             self._draw_rect(image, rect, self.detection_color, text)
 

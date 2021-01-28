@@ -9,7 +9,7 @@ class ObjectDetection:
     def __init__(self,
                  saved_model_path: str,
                  label_map_path: str = None,
-                 max_gpu_memory_fraction: float = 1):
+                 max_gpu_memory_fraction: float = 1.0):
 
         self.saved_model_path = saved_model_path
         self.label_map_path = label_map_path
@@ -39,12 +39,12 @@ class ObjectDetection:
         self.model = tf.saved_model.load(self.saved_model_path)
 
         print("Starting initialization inference.")
-        #self._run_model(np.zeros([1, 960, 1280, 3], dtype=np.uint8))
+        # self._run_model(np.zeros([960, 1280, 3], dtype=np.uint8))
         print("Finished initialization inference.")
 
     def _run_model(self, image: np.ndarray):
 
-        detection_dict = self.model(image)
+        detection_dict = self.model([image])
 
         num = detection_dict['num_detections'][0].numpy().astype(np.int32)
         classes = detection_dict['detection_classes'][0].numpy().astype(
@@ -79,13 +79,18 @@ class ObjectDetection:
             image = image[roi[0]:roi[2],
                           roi[1]:roi[3]]
 
-            box_offset = (roi.y_offset, roi.x_offset)
+            box_offset = (roi[0], roi[1])
 
         raw_detections = self._run_model(image)
 
         for detection in raw_detections:
-            box = np.multiply(detection["bounding_box"],
-                              box_scale).astype(np.uint16)
+            detection["class_id"] = int(detection["class_id"])
+            detection["probability"] = float(detection["probability"])
+
+            box = [int(detection["bounding_box"][0] * box_scale[0] + box_offset[0]),
+                   int(detection["bounding_box"][1] * box_scale[1] + box_offset[1]),
+                   int(detection["bounding_box"][2] * box_scale[0] + box_offset[0]),
+                   int(detection["bounding_box"][3] * box_scale[1] + box_offset[1])]
 
             detection["bounding_box"] = box
 
