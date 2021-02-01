@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             'continuous_detection_node = object_detector_tensorflow.continuous_detection:main',
             'single_detection_node = object_detector_tensorflow.single_detection:main',
+            'detect_objects_client = object_detector_tensorflow.detect_objects_client:main',
         ],
     },
 )

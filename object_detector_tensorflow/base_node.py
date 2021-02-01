@@ -157,7 +157,7 @@ class ObjectDetectionBaseNode(Node):
                 bounding_box=bounding_box))
 
         detected_objects.image_header = image_header
-        #detected_objects.header.stamp = self.get_clock().now()
+        detected_objects.header.stamp = self.get_clock().now().to_msg()
         detected_objects.header.frame_id = "object_detector_tensorflow"
 
         return detected_objects
