@@ -5,9 +5,9 @@ from object_detector_tensorflow.base_node import ObjectDetectionBaseNode
 from iris_ros_core.srv import DetectObjects
 
 
-class SingleDetectionNode(ObjectDetectionBaseNode):
+class DetectionNode(ObjectDetectionBaseNode):
 
-    def __init__(self, node_name):
+    def __init__(self, node_name="detection_node"):
 
         super().__init__(node_name)
 
@@ -29,7 +29,7 @@ def main(args=None):
 
     rclpy.init(args=args)
 
-    SingleDetectionNode("single_detection_node").run()
+    DetectionNode().run()
 
 
 if __name__ == '__main__':

@@ -9,7 +9,7 @@ from iris_ros_core.msg import Detections
 
 class ContinuousDetectionNode(ObjectDetectionBaseNode):
 
-    def __init__(self, node_name):
+    def __init__(self, node_name="continuous_detection_node"):
 
         super().__init__(node_name)
 
@@ -35,7 +35,7 @@ def main(args=None):
 
     rclpy.init(args=args)
 
-    ContinuousDetectionNode("continuous_detection_node").run()
+    ContinuousDetectionNode().run()
 
 
 if __name__ == '__main__':

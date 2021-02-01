@@ -144,3 +144,4 @@ cython_debug/
 # 
 /data/saved_model
 /data/label_map.txt
+/config/params.yaml

@@ -36,8 +36,8 @@ class ObjectDetectionBaseNode(Node):
                 ('result_image_size', [640, 480])
             ])
 
-        self.saved_model_path = os.path.expanduser(
-            self.get_parameter("saved_model_path").get_parameter_value().string_value)
+        self.saved_model_path = os.path.abspath(os.path.expanduser(
+            self.get_parameter("saved_model_path").get_parameter_value().string_value))
         self.label_map_path = os.path.expanduser(
             self.get_parameter("label_map_path").get_parameter_value().string_value)
         self.image_topic = self.get_parameter("image_topic").get_parameter_value().string_value
@@ -122,8 +122,8 @@ class ObjectDetectionBaseNode(Node):
         except CvBridgeError as e:
             self.logger.error(e)
 
-        # except Exception as e:
-        #     self.logger.error(f"Caught {type(e)} during detection: {e}")
+        except Exception as e:
+            self.logger.error(f"Caught {type(e)} during detection: {e}")
 
         return detected_objects, result_image
 
