@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
 import rclpy
-from rclpy.exceptions import ParameterNotDeclaredException
-from rclpy.time import Time
-from rclpy.duration import Duration
 from rclpy.node import Node
 import cv2
 import os
@@ -14,9 +11,9 @@ from cv_bridge import CvBridge, CvBridgeError
 from object_detector_tensorflow.scripts.object_detection import ObjectDetection
 from object_detector_tensorflow.scripts.visualization import Visualization
 from object_detector_tensorflow.scripts.diagnostics import Diagnostics
-from iris_ros_core.srv import DetectObjects
-from iris_ros_core.msg import Detection
-from iris_ros_core.msg import Detections
+from ros_core.srv import DetectObjects
+from ros_core.msg import Detection
+from ros_core.msg import Detections
 
 
 class ObjectDetectionBaseNode(Node):
@@ -75,6 +72,7 @@ class ObjectDetectionBaseNode(Node):
         self.logger.info("Detecting objects")
 
         detected_objects = None
+        result_image = None
 
         if roi is not None:
             if not any([roi.x_offset, roi.y_offset,
@@ -120,7 +118,7 @@ class ObjectDetectionBaseNode(Node):
                     image, detections, box))
 
         except CvBridgeError as e:
-            self.logger.error(e)
+            self.logger.error(str(e))
 
         except Exception as e:
             self.logger.error(f"Caught {type(e)} during detection: {e}")

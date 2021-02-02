@@ -4,7 +4,7 @@ import rclpy
 from sensor_msgs.msg import Image
 
 from object_detector_tensorflow.base_node import ObjectDetectionBaseNode
-from iris_ros_core.msg import Detections
+from ros_core.msg import Detections
 
 
 class ContinuousDetectionNode(ObjectDetectionBaseNode):

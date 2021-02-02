@@ -2,7 +2,7 @@
 import rclpy
 
 from object_detector_tensorflow.base_node import ObjectDetectionBaseNode
-from iris_ros_core.srv import DetectObjects
+from ros_core.srv import DetectObjects
 
 
 class DetectionNode(ObjectDetectionBaseNode):

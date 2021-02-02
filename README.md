@@ -20,3 +20,18 @@ Or give the path to the param file as command argument:
 
 `ros2 param set /continuous_detection_node min_probability 0.5`
 
+### generate a test image
+
+from cv_bridge import CvBridge, CvBridgeError
+    import numpy as np
+    bridge = CvBridge()
+    np.zeros([960, 1280, 3], dtype=np.uint8)
+    image = bridge.cv2_to_imgmsg(
+        np.zeros([960, 1280, 3], dtype=np.uint8), encoding="bgr8")
+
+### display test image from ROS-msgs
+
+    image = self.bridge.imgmsg_to_cv2(image)
+    cv2.imshow()
+    cv2.waitKey(0)
+

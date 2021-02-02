@@ -13,17 +13,10 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        # Node(
-        #     package='object_detector_tensorflow',
-        #     node_executable='detection_node',
-        #     node_name='detection_node',
-        #     output='screen',
-        #     parameters=[config]
-        # ),
         Node(
             package='object_detector_tensorflow',
-            node_executable='continuous_detection_node',
-            node_name='continuous_detection_node',
+            node_executable='detection_node',
+            node_name='detection_node',
             output='screen',
             parameters=[config]
         )

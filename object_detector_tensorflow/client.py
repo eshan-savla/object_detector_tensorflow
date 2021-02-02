@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 
 from sensor_msgs.msg import Image, RegionOfInterest
-from iris_ros_core.srv import DetectObjects
+from ros_core.srv import DetectObjects
 
 
 class Client():
@@ -37,7 +37,7 @@ class Client():
 
         self.node.get_logger().info(str(response.detections.detections))
 
-        return response.detections.detections, self.bridge.imgmsg_to_cv2(response.result_image)
+        return response.detections.detections, response.result_image
 
 
 def main(args=None):
@@ -51,8 +51,7 @@ def main(args=None):
     client = Client(node)
 
     # Image collected via camera driver, e.g. rc_visard_ros
-    image = Image(witdth=1280,
-                  height=960)
+    image = Image(height=640, width=480, encoding="rgb8")
 
     # (Optional) Only search objects in this region of interest
     roi = RegionOfInterest(x_offset=100,
