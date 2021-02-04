@@ -36,7 +36,9 @@ class ObjectDetection:
 
     def _load_saved_model(self):
 
-        self.model = tf.saved_model.load(self.saved_model_path)
+        #self.model = tf.saved_model.load(self.saved_model_path)
+        #self.model = tf.compat.v2.saved_model.load(self.saved_model_path)
+        self.model = tf.compat.v1.saved_model.loader.load(self.saved_model_path)
 
         print("Starting initialization inference.")
         # self._run_model(np.zeros([960, 1280, 3], dtype=np.uint8))

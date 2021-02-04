@@ -2,6 +2,14 @@
 
 Python based ROS Node for TensorFlow Object Detection Inference
 
+## Install requirements
+
+    pip3 install tensorflow
+    sudo apt install opencv
+    pip3 install numpy
+    sudo apt install ros-dashing-diagnostic-updater
+    sudo apt install ros-dashing-ros1-bridge
+
 ## How to run:
 
 The parameters for each node can be changed in `config/param.yaml`
