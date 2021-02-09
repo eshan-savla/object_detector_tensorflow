@@ -10,6 +10,7 @@ Python based ROS Node for TensorFlow Object Detection Inference
     sudo apt install ros-dashing-diagnostic-updater
     sudo apt install ros-dashing-ros1-bridge
 
+
 ## How to run:
 
 The parameters for each node can be changed in `config/param.yaml`
@@ -43,3 +44,4 @@ from cv_bridge import CvBridge, CvBridgeError
     cv2.imshow()
     cv2.waitKey(0)
 
+export PYTHONPATH=$PYTHONPATH:~/Code/iris_ws/src/object_detector_tensorflow

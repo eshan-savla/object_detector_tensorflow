@@ -8,9 +8,9 @@ import os
 from sensor_msgs.msg import Image, RegionOfInterest
 from cv_bridge import CvBridge, CvBridgeError
 
-from object_detector_tensorflow.scripts.object_detection import ObjectDetection
-from object_detector_tensorflow.scripts.visualization import Visualization
-from object_detector_tensorflow.scripts.diagnostics import Diagnostics
+from lib.object_detection import ObjectDetection
+from lib.visualization import Visualization
+from lib.diagnostics import Diagnostics
 from ros_core.srv import DetectObjects
 from ros_core.msg import Detection
 from ros_core.msg import Detections

@@ -36,6 +36,7 @@ class ObjectDetection:
 
     def _load_saved_model(self):
 
+        self.model = tf.saved_model.load(self.saved_model_path)
         #self.model = tf.saved_model.load(self.saved_model_path)
         #self.model = tf.compat.v2.saved_model.load(self.saved_model_path)
         self.model = tf.compat.v1.saved_model.loader.load(self.saved_model_path)
