@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+
 import rclpy
+from ros_core.srv import DetectObjects
 
 from object_detector_tensorflow.base_node import ObjectDetectionBaseNode
-from ros_core.srv import DetectObjects
 
 
 class DetectionNode(ObjectDetectionBaseNode):

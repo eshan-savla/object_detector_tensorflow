@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
-import numpy as np
-import rclpy
-from rclpy.node import Node
-import cv2
+
 import os
 
+import numpy as np
+import cv2
+
+import rclpy
+from rclpy.node import Node
 from sensor_msgs.msg import Image, RegionOfInterest
 from cv_bridge import CvBridge, CvBridgeError
-
-from lib.object_detection import ObjectDetection
-from lib.visualization import Visualization
-from lib.diagnostics import Diagnostics
 from ros_core.srv import DetectObjects
-from ros_core.msg import Detection
-from ros_core.msg import Detections
+from ros_core.msg import Detection, Detections
+
+from object_detector_tensorflow.object_detection import ObjectDetection
+from object_detector_tensorflow.visualization import Visualization
+from object_detector_tensorflow.diagnostics import Diagnostics
 
 
 class ObjectDetectionBaseNode(Node):
@@ -37,10 +38,14 @@ class ObjectDetectionBaseNode(Node):
             self.get_parameter("saved_model_path").get_parameter_value().string_value))
         self.label_map_path = os.path.expanduser(
             self.get_parameter("label_map_path").get_parameter_value().string_value)
-        self.image_topic = self.get_parameter("image_topic").get_parameter_value().string_value
-        self.min_probability = self.get_parameter("min_probability").get_parameter_value().double_value
-        self.max_gpu_memory_fraction = self.get_parameter("max_gpu_memory_fraction").get_parameter_value().double_value
-        self.result_image_size = tuple(self.get_parameter("result_image_size").get_parameter_value().integer_array_value)
+        self.image_topic = self.get_parameter(
+            "image_topic").get_parameter_value().string_value
+        self.min_probability = self.get_parameter(
+            "min_probability").get_parameter_value().double_value
+        self.max_gpu_memory_fraction = self.get_parameter(
+            "max_gpu_memory_fraction").get_parameter_value().double_value
+        self.result_image_size = tuple(self.get_parameter(
+            "result_image_size").get_parameter_value().integer_array_value)
 
         self.logger = self.get_logger()
 

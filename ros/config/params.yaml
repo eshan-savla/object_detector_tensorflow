@@ -1,0 +1,16 @@
+detection_node:
+  ros__parameters:
+    saved_model_path: "/mnt/data/ribi1011/sig/exports/Referenztraining/saved_model"  # Path to TensorFlow saved model folder
+    label_map_path: "/mnt/data/ribi1011/sig/exports/labels.txt"  # Text file with class names (one label per line)
+    min_probability: 0.8            # Minimum probability for detections to be reported
+    max_gpu_memory_fraction: 1.0    # Limits the GPU memory usage of the TensorFlow model to only a fraction (between 0 and 1)
+    result_image_size: [640,480]    # Dimensions of the result image [x,y]
+    
+continuous_detection_node:
+  ros__parameters:
+    saved_model_path: "/mnt/data/ribi1011/sig/exports/Referenztraining/saved_model"            
+    label_map_path: "/mnt/data/ribi1011/sig/exports/labels.txt"              
+    image_topic: "/stereo/left/image_rect_color"  # ROS topic to listen for images
+    min_probability: 0.5            
+    max_gpu_memory_fraction: 1.0    
+    result_image_size: [640,480]

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 
 import numpy as np
@@ -30,6 +32,10 @@ class ObjectDetection:
         if not self.label_map_path:
             print("No label map provided. Using default class names.")
 
+        elif not os.path.exists(self.label_map_path):
+            print((f"Label map path does not exist: {self.label_map_path}. "
+                   "Using default class names."))
+
         else:
             with open(self.label_map_path) as label_map:
                 self.labels.extend(label_map.read().splitlines())
@@ -37,12 +43,9 @@ class ObjectDetection:
     def _load_saved_model(self):
 
         self.model = tf.saved_model.load(self.saved_model_path)
-        #self.model = tf.saved_model.load(self.saved_model_path)
-        #self.model = tf.compat.v2.saved_model.load(self.saved_model_path)
-        self.model = tf.compat.v1.saved_model.loader.load(self.saved_model_path)
 
         print("Starting initialization inference.")
-        # self._run_model(np.zeros([960, 1280, 3], dtype=np.uint8))
+        self._run_model(np.zeros([960, 1280, 3], dtype=np.uint8))
         print("Finished initialization inference.")
 
     def _run_model(self, image: np.ndarray):
@@ -91,8 +94,10 @@ class ObjectDetection:
             detection["probability"] = float(detection["probability"])
 
             box = [int(detection["bounding_box"][0] * box_scale[0] + box_offset[0]),
-                   int(detection["bounding_box"][1] * box_scale[1] + box_offset[1]),
-                   int(detection["bounding_box"][2] * box_scale[0] + box_offset[0]),
+                   int(detection["bounding_box"][1] *
+                       box_scale[1] + box_offset[1]),
+                   int(detection["bounding_box"][2] *
+                       box_scale[0] + box_offset[0]),
                    int(detection["bounding_box"][3] * box_scale[1] + box_offset[1])]
 
             detection["bounding_box"] = box

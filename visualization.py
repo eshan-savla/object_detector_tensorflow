@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import numpy as np
 import cv2
 
@@ -37,9 +39,9 @@ class Visualization:
     def _roi2rect(self, roi: list):
 
         return [(roi[1], roi[0]),
-                (roi[1], roi[0] + roi[2]),
-                (roi[1] + roi[3], roi[0] + roi[2]),
-                (roi[1] + roi[3], roi[0])]
+                (roi[1], roi[2]),
+                (roi[3], roi[2]),
+                (roi[3], roi[0])]
 
     def _draw_rect(self,
                    image: np.ndarray,

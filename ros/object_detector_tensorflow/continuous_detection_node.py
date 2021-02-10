@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
+
 import rclpy
-
 from sensor_msgs.msg import Image
-
-from object_detector_tensorflow.base_node import ObjectDetectionBaseNode
 from ros_core.msg import Detections
+
+from object_detector_tensorflow.ros.base_node import ObjectDetectionBaseNode
 
 
 class ContinuousDetectionNode(ObjectDetectionBaseNode):
