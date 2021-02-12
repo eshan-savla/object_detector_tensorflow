@@ -142,6 +142,6 @@ cython_debug/
 .vscode/
 
 # 
-/data/saved_model
-/data/label_map.txt
-/config/params.yaml
+ros/data/saved_model
+ros/data/label_map.txt
+ros/config/params.yaml

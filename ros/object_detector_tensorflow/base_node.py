@@ -12,8 +12,8 @@ from cv_bridge import CvBridge, CvBridgeError
 from ros_core.srv import DetectObjects
 from ros_core.msg import Detection, Detections
 
-from object_detector_tensorflow.object_detection import ObjectDetection
-from object_detector_tensorflow.visualization import Visualization
+from odtf.object_detection import ObjectDetection
+from odtf.visualization import Visualization
 from object_detector_tensorflow.diagnostics import Diagnostics
 
 
