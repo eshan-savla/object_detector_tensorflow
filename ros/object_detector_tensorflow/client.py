@@ -16,7 +16,7 @@ class Client():
             DetectObjects, 'detection_node/detect_objects')
 
         while not self.client.wait_for_service(timeout_sec=1.0):
-            self.node.get_logger().info('service not available, waiting again...')
+            self.node.get_logger().info('DetectObjects service not available, waiting again...')
 
         self.request = DetectObjects.Request()
 
