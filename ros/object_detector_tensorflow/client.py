@@ -31,7 +31,10 @@ class Client():
 
         future = self.detect_objects_async(image, roi)
 
-        rclpy.spin_until_future_complete(self.node, future)
+        try:
+            rclpy.spin_until_future_complete(self.node, future)
+        except KeyboardInterrupt:
+            node.get_logger().info("KeyboardInterrupt")
 
         response = future.result()
 

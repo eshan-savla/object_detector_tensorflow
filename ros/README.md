@@ -13,7 +13,7 @@ Python based ROS Node for TensorFlow Object Detection Inference
 
 ## How to run:
 
-The parameters for each node can be changed in `config/param.yaml`
+The parameters for each node can be changed in `config/params.yaml`
 
 To start the nodes with the custom parameters use the launch script:
 
@@ -43,5 +43,3 @@ from cv_bridge import CvBridge, CvBridgeError
     image = self.bridge.imgmsg_to_cv2(image)
     cv2.imshow()
     cv2.waitKey(0)
-
-export PYTHONPATH=$PYTHONPATH:~/Code/iris_ws/src/object_detector_tensorflow

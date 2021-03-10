@@ -7,7 +7,12 @@ from launch_ros.actions import Node
 def generate_launch_description():
 
     config = os.path.join(
-        get_package_share_directory('object_detector_tensorflow'),
+        get_package_prefix('object_detector_tensorflow'),
+        '..',
+        '..',
+        'src',
+        'object_detector_tensorflow',
+        'ros',
         'config',
         'params.yaml'
     )
@@ -15,7 +20,7 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='object_detector_tensorflow',
-            node_executable='continuous_detection_node',
+            node_executable='continuous_detection_node.py',
             node_name='continuous_detection_node',
             output='screen',
             parameters=[config]
