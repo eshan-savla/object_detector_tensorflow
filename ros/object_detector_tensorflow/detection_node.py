@@ -2,10 +2,10 @@
 
 import rclpy
 from sensor_msgs.msg import Image
-from ros_core.msg import Detections
-from ros_core.srv import DetectObjects
 
 from object_detector_tensorflow.base_node import ObjectDetectionBaseNode
+from object_detector_tensorflow.msg import Detections
+from object_detector_tensorflow.srv import DetectObjects
 
 
 class DetectionNode(ObjectDetectionBaseNode):

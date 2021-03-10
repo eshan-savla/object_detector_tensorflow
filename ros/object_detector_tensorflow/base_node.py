@@ -9,12 +9,12 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image, RegionOfInterest
 from cv_bridge import CvBridge, CvBridgeError
-from ros_core.srv import DetectObjects
-from ros_core.msg import Detection, Detections
 
 from odtf.object_detection import ObjectDetection
 from odtf.visualization import Visualization
 from object_detector_tensorflow.diagnostics import Diagnostics
+from object_detector_tensorflow.srv import DetectObjects
+from object_detector_tensorflow.msg import Detection, Detections
 
 
 class ObjectDetectionBaseNode(Node):

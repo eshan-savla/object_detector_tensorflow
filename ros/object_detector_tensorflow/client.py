@@ -3,7 +3,8 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image, RegionOfInterest
-from ros_core.srv import DetectObjects
+
+from object_detector_tensorflow.srv import DetectObjects
 
 
 class Client():
