@@ -1,6 +1,6 @@
 # Object Detector Tensorflow
 
-Python based ROS Node for TensorFlow Object Detection Inference
+Python based ROS2 Node for TensorFlow Object Detection Inference
 
 ## Install requirements
 
@@ -45,3 +45,7 @@ Or give the path to the param file as command argument:
     cv2.waitKey(0)
 
 export PYTHONPATH=$PYTHONPATH:~/Code/iris_ws/src/object_detector_tensorflow
+
+## Todo:
+
+- [ ] finish Dockerfile
