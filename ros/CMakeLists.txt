@@ -20,13 +20,11 @@ find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
-find_package(ros_core REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
 include_directories(
     include
-    ${ros_core_INCLUDE_DIR}
 )
 
 # Generate custom messages
