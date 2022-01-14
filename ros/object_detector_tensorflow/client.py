@@ -2,9 +2,9 @@
 
 import rclpy
 from rclpy.node import Node
-
 from sensor_msgs.msg import Image, RegionOfInterest
-from ros_core.srv import DetectObjects
+
+from object_detector_tensorflow.srv import DetectObjects
 
 
 class Client():
@@ -13,10 +13,11 @@ class Client():
 
         self.node = node
 
-        self.client = self.node.create_client(DetectObjects, 'detection_node/detect_objects')
+        self.client = self.node.create_client(
+            DetectObjects, 'detection_node/detect_objects')
 
         while not self.client.wait_for_service(timeout_sec=1.0):
-            self.node.get_logger().info('service not available, waiting again...')
+            self.node.get_logger().info('DetectObjects service not available, waiting again...')
 
         self.request = DetectObjects.Request()
 
@@ -31,7 +32,10 @@ class Client():
 
         future = self.detect_objects_async(image, roi)
 
-        rclpy.spin_until_future_complete(self.node, future)
+        try:
+            rclpy.spin_until_future_complete(self.node, future)
+        except KeyboardInterrupt:
+            node.get_logger().info("KeyboardInterrupt")
 
         response = future.result()
 
