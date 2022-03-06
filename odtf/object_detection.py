@@ -52,11 +52,15 @@ class ObjectDetection:
 
         detection_dict = self.model([image])
 
-        num = detection_dict['num_detections'][0].numpy().astype(np.int32)
-        classes = detection_dict['detection_classes'][0].numpy().astype(
+        num = detection_dict["num_detections"][0].numpy().astype(np.int32)
+        classes = detection_dict["detection_classes"][0].numpy().astype(
             np.uint8)
-        boxes = detection_dict['detection_boxes'][0].numpy()
-        scores = detection_dict['detection_scores'][0].numpy()
+        boxes = detection_dict["detection_boxes"][0].numpy()
+        scores = detection_dict["detection_scores"][0].numpy()
+        masks = None
+
+        if "detection_masks" in detection_dict:
+            masks = detection_dict["detection_masks"][0].numpy()
 
         detections = []
 
@@ -65,11 +69,14 @@ class ObjectDetection:
                           if classes[index] < len(self.labels)
                           else f"Class {classes[index]}")
 
+            mask = None if masks is None else masks[index]
+
             detections.append({
                 "class_id": classes[index],
                 "class_name": class_name,
                 "probability": scores[index],
                 "bounding_box": boxes[index],
+                "mask": mask
             })
 
         return detections
@@ -87,9 +94,9 @@ class ObjectDetection:
 
             box_offset = (roi[0], roi[1])
 
-        raw_detections = self._run_model(image)
+        detections = self._run_model(image)
 
-        for detection in raw_detections:
+        for detection in detections:
             detection["class_id"] = int(detection["class_id"])
             detection["probability"] = float(detection["probability"])
 
@@ -102,4 +109,4 @@ class ObjectDetection:
 
             detection["bounding_box"] = box
 
-        return raw_detections
+        return detections

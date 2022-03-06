@@ -9,14 +9,15 @@ class Visualization:
     def __init__(self,
                  font: int = cv2.FONT_HERSHEY_SIMPLEX,
                  font_scale: int = 1,
-                 font_thickness: int = 2):
+                 font_thickness: int = 2,
+                 roi_color: tuple = (0, 255, 0),
+                 detection_color: tuple = (255, 0, 0)):
 
         self.font = font
         self.font_scale = font_scale
         self.font_thickness = font_thickness
-
-        self.roi_color = (0, 255, 0)
-        self.detection_color = (255, 0, 0)
+        self.roi_color = roi_color
+        self.detection_color = detection_color
 
     def draw_detections(self,
                         image: np.ndarray,
@@ -32,7 +33,16 @@ class Visualization:
             rect = self._roi2rect(detection["bounding_box"])
             text = f"{detection['class_name']} ({int(detection['probability'] * 100)} %)"
 
-            self._draw_rect(image, rect, self.detection_color, text)
+            self._draw_rect(image,
+                            rect,
+                            self.detection_color,
+                            text)
+
+            if detection["mask"] is not None:
+                image = self._draw_mask(image,
+                                        detection["mask"],
+                                        rect,
+                                        self.detection_color)
 
         return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
@@ -48,6 +58,7 @@ class Visualization:
                    rect: list,
                    color=(255, 255, 255),
                    text: str = "",
+                   mask: np.ndarray = None,
                    thickness: int = 2):
 
         try:
@@ -58,9 +69,13 @@ class Visualization:
                                      thickness)
 
             if text:
-                position = (rect[0][0] + 5, rect[0][1] - 5)
+                position = (rect[0][0] + 5,
+                            rect[0][1] - 5)
 
-                self._draw_text(image, text, position, color)
+                self._draw_text(image,
+                                text,
+                                position,
+                                color)
 
         except Exception as e:
             print(e)
@@ -85,3 +100,46 @@ class Visualization:
                     self.font_scale,
                     (255, 255, 255),
                     self.font_thickness)
+
+    def _draw_mask(self,
+                   image: np.ndarray,
+                   mask: np.ndarray,
+                   rect: list,
+                   color=(255, 255, 255),
+                   alpha=.5):
+
+        try:
+            size = (rect[2][0] - rect[0][0],
+                    rect[2][1] - rect[0][1])
+
+            mask = cv2.resize(mask,
+                              size)
+
+            mask_binary = np.zeros(mask.shape)
+            mask_binary[mask > .5] = 1
+
+            mask = np.stack((mask_binary * color[0],
+                             mask_binary * color[1],
+                             mask_binary * color[2]),
+                            axis=2)
+
+            image_mask = np.zeros(image.shape,
+                                  dtype=np.uint8)
+
+            position = (rect[0][0],
+                        rect[0][1])
+
+            image_mask[position[1]: position[1] + size[1],
+                       position[0]: position[0] + size[0]] = mask
+
+            cv2.addWeighted(image_mask,
+                            alpha,
+                            image,
+                            1,
+                            0,
+                            image)
+
+        except Exception as e:
+            print(e)
+
+        return image
