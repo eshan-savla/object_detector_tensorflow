@@ -3,7 +3,7 @@
 <package format="3">
   <name>object_detector_tensorflow</name>
   <version>0.0.0</version>
-  <description>Python based ROS Nodes for TensorFlow Object Detection Inference</description>
+  <description>Python based ROS Node for TensorFlow Object Detection Inference</description>
   <maintainer email="andreas.zachariae@hs-karlsruhe.de">Andreas Zachariae</maintainer>
   <license>TODO: License declaration</license>
 

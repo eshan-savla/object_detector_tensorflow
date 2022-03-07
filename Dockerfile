@@ -1,49 +1,64 @@
-# Run build with --build-arg TF_RELEASE="X.X.X-X" for other releases than 2.3.0-gpu
-ARG TF_RELEASE=2.3.0-gpu
-FROM tensorflow/tensorflow:1.13.2$TF_RELEASE
-ARG DEBIAN_FRONTEND=noninteractive
+##############################################################################
+##                                 Base Image                               ##
+##############################################################################
+ARG ROS_DISTRO=foxy
+FROM ros:$ROS_DISTRO-ros-base
+ENV TZ=Europe/Berlin
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN rosdep update --rosdistro $ROS_DISTRO
 
-#### ROS 2 Installation ####
+# Update packages only if necessary, ~250MB
+# RUN apt update && apt -y dist-upgrade
 
-# Run build with --build-arg ROS_DISTRO="X" for other releases than dashing
-ARG ROS_DISTRO=dashing
+##############################################################################
+##                                 Global Dependecies                       ##
+##############################################################################
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    ros-$ROS_DISTRO-cv-bridge \
+    python3-pip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Setup Locale
-RUN sudo locale-gen en_US en_US.UTF-8
-RUN sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-RUN export LANG=en_US.UTF-8
+# New versions necessary to prevent "skbuild" error from scikit-build
+RUN python3 -m pip install -U pip setuptools
+RUN pip3 install opencv-python
+RUN pip3 install tensorflow
 
-# Setup Sources
-RUN sudo apt update && sudo apt install curl gnupg2 lsb-release
-RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
+##############################################################################
+##                                 Create User                              ##
+##############################################################################
+ARG USER=docker
+ARG PASSWORD=petra
+ARG UID=1000
+ARG GID=1000
+ARG DOMAIN_ID=0
+ENV UID=$UID
+ENV GID=$GID
+ENV USER=$USER
+RUN groupadd -g "$GID" "$USER"  && \
+    useradd -m -u "$UID" -g "$GID" --shell $(which bash) "$USER" -G sudo && \
+    echo "$USER:$PASSWORD" | chpasswd && \
+    echo "%sudo ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/sudogrp
+RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> /etc/bash.bashrc
+RUN echo "export ROS_DOMAIN_ID=$DOMAIN_ID" >> /etc/bash.bashrc
 
-RUN sudo sh -c 'echo "deb [arch=$(dpkg --print-architecture)] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'
+USER $USER 
+RUN mkdir -p /home/$USER/ros2_ws/src
 
-# Install ROS 2 packages
-RUN sudo apt update
-RUN sudo apt install ros-$ROS_DISTRO-desktop
+##############################################################################
+##                                 User Dependecies                         ##
+##############################################################################
+WORKDIR /home/$USER/ros2_ws/src
+RUN git clone --depth 1 -b master https://project_107_bot:glpat-4sey2MxzfJ4xpykyZx59@www.w.hs-karlsruhe.de/gitlab/iras/common/object_detector_tensorflow.git
 
-# Environment setup
-RUN source /opt/ros/crystal/setup.bash
+##############################################################################
+##                                 Build ROS and run                        ##
+##############################################################################
+WORKDIR /home/$USER/ros2_ws
+RUN . /opt/ros/$ROS_DISTRO/setup.sh && colcon build --symlink-install
+RUN echo "source /home/$USER/ros2_ws/install/setup.bash" >> /home/$USER/.bashrc
 
-# Install argcomplete
-RUN sudo apt install python3-argcomplete
+RUN sudo sed --in-place --expression \
+    '$isource "/home/$USER/ros2_ws/install/setup.bash"' \
+    /ros_entrypoint.sh
 
-# setup entrypoint
-COPY ros_entrypoint.sh /
-ENTRYPOINT ["/ros_entrypoint.sh"]
-
-############################
-
-WORKDIR /workspace
-
-# set up the ros node
-COPY object_detector_tensorflow ./object_detector_tensorflow
-
-# deploy the default CNN
-COPY data/* /
-
-ENV PYTHONUNBUFFERED 1
-CMD [ "python", "-m", "object_detector_tensorflow" ]
-
-STOPSIGNAL SIGINT
+CMD ["ros2", "launch", "object_detector_tensorflow", "continuous_detection.launch.py"]
