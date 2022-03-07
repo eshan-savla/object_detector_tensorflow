@@ -22,6 +22,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(diagnostic_updater REQUIRED)
 
 include_directories(
     include
@@ -45,7 +46,7 @@ install(DIRECTORY
 # Install python library
 install(DIRECTORY
    ../odtf
-   DESTINATION lib/${PROJECT_NAME}/
+   DESTINATION lib/python3.6/site-packages/
 )
 
 # Install python nodes
