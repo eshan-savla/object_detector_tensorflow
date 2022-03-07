@@ -1,7 +1,7 @@
 ##############################################################################
 ##                                 Base Image                               ##
 ##############################################################################
-ARG ROS_DISTRO=foxy
+ARG ROS_DISTRO=dashing
 FROM ros:$ROS_DISTRO-ros-base
 ENV TZ=Europe/Berlin
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -15,6 +15,7 @@ RUN rosdep update --rosdistro $ROS_DISTRO
 ##############################################################################
 RUN apt-get update && apt-get install --no-install-recommends -y \
     ros-$ROS_DISTRO-cv-bridge \
+    ros-$ROS_DISTRO-diagnostic-updater \
     python3-pip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -34,12 +35,12 @@ ARG DOMAIN_ID=0
 ENV UID=$UID
 ENV GID=$GID
 ENV USER=$USER
+ENV ROS_DOMAIN_ID=$DOMAIN_ID
 RUN groupadd -g "$GID" "$USER"  && \
     useradd -m -u "$UID" -g "$GID" --shell $(which bash) "$USER" -G sudo && \
     echo "$USER:$PASSWORD" | chpasswd && \
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/sudogrp
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> /etc/bash.bashrc
-RUN echo "export ROS_DOMAIN_ID=$DOMAIN_ID" >> /etc/bash.bashrc
 
 USER $USER 
 RUN mkdir -p /home/$USER/ros2_ws/src
@@ -48,7 +49,8 @@ RUN mkdir -p /home/$USER/ros2_ws/src
 ##                                 User Dependecies                         ##
 ##############################################################################
 WORKDIR /home/$USER/ros2_ws/src
-RUN git clone --depth 1 -b master https://project_107_bot:glpat-4sey2MxzfJ4xpykyZx59@www.w.hs-karlsruhe.de/gitlab/iras/common/object_detector_tensorflow.git
+#RUN git clone --depth 1 -b master https://project_107_bot:glpat-4sey2MxzfJ4xpykyZx59@www.w.hs-karlsruhe.de/gitlab/iras/common/object_detector_tensorflow.git
+COPY . ./object_detector_tensorflow
 
 ##############################################################################
 ##                                 Build ROS and run                        ##
@@ -62,3 +64,4 @@ RUN sudo sed --in-place --expression \
     /ros_entrypoint.sh
 
 CMD ["ros2", "launch", "object_detector_tensorflow", "continuous_detection.launch.py"]
+#CMD /bin/bash
