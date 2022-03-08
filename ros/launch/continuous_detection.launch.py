@@ -1,4 +1,5 @@
 import os
+
 from ament_index_python.packages import get_package_prefix
 from launch import LaunchDescription
 from launch_ros.actions import Node
@@ -20,8 +21,8 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='object_detector_tensorflow',
-            node_executable='continuous_detection_node.py',
-            node_name='continuous_detection_node',
+            executable='continuous_detection_node.py',
+            name='continuous_detection_node',
             output='screen',
             parameters=[config]
         )

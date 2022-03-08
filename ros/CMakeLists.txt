@@ -46,7 +46,7 @@ install(DIRECTORY
 # Install python library
 install(DIRECTORY
    ../odtf
-   DESTINATION lib/python3.6/site-packages/
+   DESTINATION lib/python3.8/site-packages/
 )
 
 # Install python nodes

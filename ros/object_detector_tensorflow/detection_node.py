@@ -10,7 +10,8 @@ from object_detector_tensorflow.srv import DetectObjects
 
 class DetectionNode(ObjectDetectionBaseNode):
 
-    def __init__(self, node_name="detection_node"):
+    def __init__(self,
+                 node_name: str = "detection_node") -> None:
 
         super().__init__(node_name)
 
@@ -23,7 +24,9 @@ class DetectionNode(ObjectDetectionBaseNode):
         self.detections_publisher = self.create_publisher(
             Detections, f"{node_name}/detections", 1)
 
-    def _detect_objects(self, request, response):
+    def _detect_objects(self,
+                        request: DetectObjects.Request,
+                        response: DetectObjects.Request) -> None:
 
         detected_objects, result_image = super()._detect_objects(
             request.image, request.roi)
@@ -38,7 +41,7 @@ class DetectionNode(ObjectDetectionBaseNode):
         return response
 
 
-def main(args=None):
+def main(args=None) -> None:
 
     rclpy.init(args=args)
 

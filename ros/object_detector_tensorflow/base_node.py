@@ -7,19 +7,20 @@ import cv2
 
 import rclpy
 from rclpy.node import Node
+from std_msgs.msg import Header
 from sensor_msgs.msg import Image, RegionOfInterest
 from cv_bridge import CvBridge, CvBridgeError
 
 from odtf.object_detection import ObjectDetection
 from odtf.visualization import Visualization
 from object_detector_tensorflow.diagnostics import Diagnostics
-from object_detector_tensorflow.srv import DetectObjects
 from object_detector_tensorflow.msg import Detection, Detections
 
 
 class ObjectDetectionBaseNode(Node):
 
-    def __init__(self, node_name):
+    def __init__(self,
+                 node_name: str) -> None:
 
         super().__init__(node_name)
 
@@ -59,7 +60,7 @@ class ObjectDetectionBaseNode(Node):
 
         self.bridge = CvBridge()
 
-    def run(self):
+    def run(self) -> None:
 
         try:
             self.logger.info("Started Node")
@@ -72,7 +73,9 @@ class ObjectDetectionBaseNode(Node):
         self.destroy_node()
         rclpy.shutdown()
 
-    def _detect_objects(self, image: Image, roi: RegionOfInterest = None):
+    def _detect_objects(self,
+                        image: Image,
+                        roi: RegionOfInterest = None) -> None:
 
         self.logger.info("Detecting objects")
 
@@ -115,8 +118,8 @@ class ObjectDetectionBaseNode(Node):
 
             self.logger.debug(f"{detections}")
 
-            detected_objects = self._convert_detections_to_ros(
-                detections, image_header)
+            detected_objects = self._convert_detections_to_ros(detections,
+                                                               image_header)
 
             result_image = self._convert_image_to_ros(
                 self.visualization.draw_detections(
@@ -130,7 +133,7 @@ class ObjectDetectionBaseNode(Node):
 
         return detected_objects, result_image
 
-    def _clean_detections(self, raw_detections):
+    def _clean_detections(self, raw_detections: list) -> list:
 
         detections = []
 
@@ -140,7 +143,7 @@ class ObjectDetectionBaseNode(Node):
 
         return detections
 
-    def _convert_detections_to_ros(self, detections, image_header):
+    def _convert_detections_to_ros(self, detections: list, image_header: Header):
 
         detected_objects = Detections()
 
@@ -165,7 +168,7 @@ class ObjectDetectionBaseNode(Node):
 
         return detected_objects
 
-    def _convert_image_to_ros(self, image: np.ndarray):
+    def _convert_image_to_ros(self, image: np.ndarray) -> Image:
         try:
             image = cv2.resize(image,
                                dsize=self.result_image_size,

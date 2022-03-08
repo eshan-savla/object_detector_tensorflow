@@ -4,13 +4,13 @@ detection_node:
     label_map_path: "src/object_detector_tensorflow/ros/data/label_map.txt"  # Text file with class names (one label per line)
     min_probability: 0.8            # Minimum probability for detections to be reported
     max_gpu_memory_fraction: 1.0    # Limits the GPU memory usage of the TensorFlow model to only a fraction (between 0 and 1)
-    result_image_size: [640,480]    # Dimensions of the result image [x,y]
+    result_image_size: [640, 480]    # Dimensions of the result image [x,y]
     
 continuous_detection_node:
   ros__parameters:
-    saved_model_path: "src/object_detector_tensorflow/ros/data/saved_model"            
-    label_map_path: "src/object_detector_tensorflow/ros/data/label_map.txt"              
+    saved_model_path: "src/object_detector_tensorflow/ros/data/saved_model"
+    label_map_path: "src/object_detector_tensorflow/ros/data/label_map.txt"
     image_topic: "/image"  # ROS topic to listen for images
-    min_probability: 0.5            
-    max_gpu_memory_fraction: 1.0    
-    result_image_size: [640,480]
+    min_probability: 0.8
+    max_gpu_memory_fraction: 1.0
+    result_image_size: [640, 480]

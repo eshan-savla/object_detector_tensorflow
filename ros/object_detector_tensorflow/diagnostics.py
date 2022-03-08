@@ -2,7 +2,6 @@
 
 import socket
 
-import rclpy
 from rclpy.node import Node
 from diagnostic_updater import Updater
 from diagnostic_msgs.msg import DiagnosticStatus
@@ -12,9 +11,9 @@ class Diagnostics(object):
 
     def __init__(self,
                  node: Node,
-                 message: str = "Statistic"):
+                 message: str = "Statistic") -> None:
 
-        def create_diagnostic(status):
+        def create_diagnostic(status: DiagnosticStatus) -> None:
 
             status.summary(DiagnosticStatus.OK, message)
 
@@ -32,7 +31,7 @@ class Diagnostics(object):
 
     def update(self,
                key: str,
-               value: object):
+               value: object) -> None:
 
         self.diagnostic_dict[key] = value
         self.diagnostic_updater.update()

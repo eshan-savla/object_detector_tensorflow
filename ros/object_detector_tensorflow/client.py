@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 
+from typing import List, Tuple
+
 import rclpy
 from rclpy.node import Node
+from rclpy.task import Future
 from sensor_msgs.msg import Image, RegionOfInterest
 
 from object_detector_tensorflow.srv import DetectObjects
+from object_detector_tensorflow.msg import Detection
 
 
 class Client():
 
-    def __init__(self, node: Node):
+    def __init__(self,
+                 node: Node) -> None:
 
         self.node = node
 
@@ -21,21 +26,26 @@ class Client():
 
         self.request = DetectObjects.Request()
 
-    def detect_objects_async(self, image: Image, roi: RegionOfInterest):
+    def detect_objects_async(self,
+                             image: Image,
+                             roi: RegionOfInterest) -> Future:
 
         self.request.image = image
         self.request.roi = roi
 
         return self.client.call_async(self.request)
 
-    def detect_objects(self, image: Image, roi: RegionOfInterest):
+    def detect_objects(self,
+                       image: Image,
+                       roi: RegionOfInterest) -> Tuple[List[Detection], Image]:
 
         future = self.detect_objects_async(image, roi)
 
         try:
             rclpy.spin_until_future_complete(self.node, future)
+
         except KeyboardInterrupt:
-            node.get_logger().info("KeyboardInterrupt")
+            self.node.get_logger().info("KeyboardInterrupt")
 
         response = future.result()
 
@@ -44,7 +54,7 @@ class Client():
         return response.detections.detections, response.result_image
 
 
-def main(args=None):
+def main(args=None) -> None:
 
     rclpy.init(args=args)
 
@@ -64,6 +74,9 @@ def main(args=None):
                            width=100)
 
     detections, result_image = client.detect_objects(image, roi)
+
+    print(detections)
+    print(result_image.width, result_image.height)
 
     #####################
 

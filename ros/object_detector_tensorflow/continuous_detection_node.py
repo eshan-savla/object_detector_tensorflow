@@ -9,12 +9,14 @@ from object_detector_tensorflow.msg import Detections
 
 class ContinuousDetectionNode(ObjectDetectionBaseNode):
 
-    def __init__(self, node_name="continuous_detection_node"):
+    def __init__(self,
+                 node_name: str = "continuous_detection_node",
+                 keep_last: int = 1) -> None:
 
         super().__init__(node_name)
 
         self.subscriber = self.create_subscription(
-            Image, self.image_topic, self._detect_objects)
+            Image, self.image_topic, self._detect_objects, keep_last)
 
         self.image_publisher = self.create_publisher(
             Image, f"{node_name}/result_image", 1)
@@ -22,7 +24,8 @@ class ContinuousDetectionNode(ObjectDetectionBaseNode):
         self.detections_publisher = self.create_publisher(
             Detections, f"{node_name}/detections", 1)
 
-    def _detect_objects(self, msg: Image):
+    def _detect_objects(self,
+                        msg: Image) -> None:
 
         detected_objects, result_image = super()._detect_objects(msg)
 
