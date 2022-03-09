@@ -29,6 +29,10 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     ros-$ROS_DISTRO-ros-base \
     ros-$ROS_DISTRO-cv-bridge \
     ros-$ROS_DISTRO-diagnostic-updater \
+    ros-$ROS_DISTRO-rqt* \
+    ros-${ROS_DISTRO}-rc-common-msgs \
+    ros-${ROS_DISTRO}-image-transport \
+    ros-${ROS_DISTRO}-rc-genicam-api \
     python3-colcon-common-extensions \
     python3-rosdep \
     python3-argcomplete \
@@ -53,8 +57,8 @@ RUN pip3 install -U \
 ##############################################################################
 ARG USER=docker
 ARG PASSWORD=petra
-ARG UID=1000
-ARG GID=1000
+ARG UID=1002
+ARG GID=1002
 ARG DOMAIN_ID=0
 ENV UID=$UID
 ENV GID=$GID
@@ -73,7 +77,9 @@ RUN mkdir -p /home/$USER/ros2_ws/src
 ##                             User Dependecies                             ##
 ##############################################################################
 WORKDIR /home/$USER/ros2_ws/src
-RUN git clone --depth 1 -b master https://project_107_bot:glpat-4sey2MxzfJ4xpykyZx59@www.w.hs-karlsruhe.de/gitlab/iras/common/object_detector_tensorflow.git
+# RUN git clone --depth 1 -b master https://project_107_bot:glpat-4sey2MxzfJ4xpykyZx59@www.w.hs-karlsruhe.de/gitlab/iras/common/object_detector_tensorflow.git
+RUN git clone --depth 1 https://github.com/roboception/rc_genicam_driver_ros2.git
+COPY . ./object_detector_tensorflow
 
 ##############################################################################
 ##                             Build ROS and run                            ##
@@ -93,4 +99,6 @@ RUN echo "exec \$@" >> ros_entrypoint.sh
 RUN sudo mv ros_entrypoint.sh /
 ENTRYPOINT ["/ros_entrypoint.sh"]
 
-CMD ["ros2", "launch", "object_detector_tensorflow", "continuous_detection.launch.py"]
+# CMD ["ros2", "launch", "object_detector_tensorflow", "continuous_detection.launch.py"]
+# CMD ["ros2", "run", "rc_genicam_driver", "rc_genicam_driver", "--ros-args", "-r", "/stereo/left/image_rect_color:=/image"]
+CMD /bin/bash

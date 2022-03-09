@@ -65,18 +65,32 @@ def main(args=None) -> None:
     client = Client(node)
 
     # Image collected via camera driver, e.g. rc_visard_ros
-    image = Image(height=640, width=480, encoding="rgb8")
+    # image = Image(height=640, width=480, encoding="rgb8")
+
+    # Test image from folder
+    from cv_bridge import CvBridge
+    import numpy as np
+    import cv2
+
+    bridge = CvBridge()
+
+    img = cv2.imread('/home/docker/ros2_ws/src/object_detector_tensorflow/ros/data/test_image_0.png', 0) 
+    image = bridge.cv2_to_imgmsg(img)
 
     # (Optional) Only search objects in this region of interest
-    roi = RegionOfInterest(x_offset=100,
-                           y_offset=100,
-                           height=100,
-                           width=100)
+    roi = RegionOfInterest(x_offset=0,
+                           y_offset=0,
+                           height=960,
+                           width=1280)
 
     detections, result_image = client.detect_objects(image, roi)
 
     print(detections)
     print(result_image.width, result_image.height)
+
+    image = bridge.imgmsg_to_cv2(result_image)
+    cv2.imshow("result", image)
+    cv2.waitKey(5000)
 
     #####################
 

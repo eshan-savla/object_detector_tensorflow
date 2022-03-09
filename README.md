@@ -110,17 +110,30 @@ result_image_size: [640,480]    # Dimensions of the result image [x,y]
 ### generate a test image
 
     from cv_bridge import CvBridge, CvBridgeError
-        import numpy as np
-        bridge = CvBridge()
-        np.zeros([960, 1280, 3], dtype=np.uint8)
-        image = bridge.cv2_to_imgmsg(
-            np.zeros([960, 1280, 3], dtype=np.uint8), encoding="bgr8")
+    import numpy as np
+    bridge = CvBridge()
+    np.zeros([960, 1280, 3], dtype=np.uint8)
+    image = bridge.cv2_to_imgmsg(
+        np.zeros([960, 1280, 3], dtype=np.uint8), encoding="bgr8")
 
 ### display test image from ROS-msgs
 
-    image = self.bridge.imgmsg_to_cv2(image)
-    cv2.imshow()
+    image = bridge.imgmsg_to_cv2(image)
+    cv2.imshow(image)
     cv2.waitKey(0)
+
+### load image file
+
+    # Test image from folder
+    from cv_bridge import CvBridge
+    import numpy as np
+    import cv2
+
+    bridge = CvBridge()
+
+    img = cv2.imread('../data/test_image_0.png', 0) 
+    image = bridge.cv2_to_imgmsg(img, encoding="bgr8")
+
 
 export PYTHONPATH=$PYTHONPATH:~/Code/iris_ws/src/object_detector_tensorflow
 
