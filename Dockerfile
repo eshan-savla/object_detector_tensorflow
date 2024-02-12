@@ -4,6 +4,11 @@
 ARG TF_VERSION=2.8.0
 FROM tensorflow/tensorflow:$TF_VERSION-gpu
 
+# Temporary fix for: "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY A4B469963BF863CC"
+# https://github.com/NVIDIA/nvidia-container-toolkit/issues/257
+RUN rm /etc/apt/sources.list.d/cuda.list
+RUN rm /etc/apt/sources.list.d/nvidia-ml.list
+
 RUN apt-get update && apt-get install -y \
     locales \
     curl \
@@ -56,14 +61,12 @@ RUN pip3 install -U \
 ##                                Create User                               ##
 ##############################################################################
 ARG USER=docker
-ARG PASSWORD=petra
+ARG PASSWORD=docker
 ARG UID=1002
 ARG GID=1002
-ARG DOMAIN_ID=0
 ENV UID=$UID
 ENV GID=$GID
 ENV USER=$USER
-ENV ROS_DOMAIN_ID=$DOMAIN_ID
 RUN groupadd -g "$GID" "$USER"  && \
     useradd -m -u "$UID" -g "$GID" --shell $(which bash) "$USER" -G sudo && \
     echo "$USER:$PASSWORD" | chpasswd && \
