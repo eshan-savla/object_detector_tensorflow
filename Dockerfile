@@ -1,13 +1,8 @@
 ##############################################################################
 ##                                Base Image                                ##
 ##############################################################################
-ARG TF_VERSION=2.8.0
+ARG TF_VERSION=2.15.0
 FROM tensorflow/tensorflow:$TF_VERSION-gpu
-
-# Temporary fix for: "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY A4B469963BF863CC"
-# https://github.com/NVIDIA/nvidia-container-toolkit/issues/257
-RUN rm /etc/apt/sources.list.d/cuda.list
-RUN rm /etc/apt/sources.list.d/nvidia-ml.list
 
 RUN apt-get update && apt-get install -y \
     locales \
@@ -26,7 +21,7 @@ RUN locale-gen en_US en_US.UTF-8 \
     && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 \
     && export LANG=en_US.UTF-8
 
-ARG ROS_DISTRO=foxy
+ARG ROS_DISTRO=humble
 RUN curl https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
 RUN sh -c 'echo "deb [arch=$(dpkg --print-architecture)] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'
 
@@ -42,8 +37,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     python3-rosdep \
     python3-argcomplete \
     && rm -rf /var/lib/apt/lists/*rm
-
-RUN source /opt/ros/$ROS_DISTRO/setup.bash
 
 ENV TZ=Europe/Berlin
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone

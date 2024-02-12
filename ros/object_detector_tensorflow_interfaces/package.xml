@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>object_detector_tensorflow</name>
+  <name>object_detector_tensorflow_interfaces</name>
   <version>0.0.0</version>
   <description>Python based ROS Node for TensorFlow Object Detection Inference</description>
   <maintainer email="andreas.zachariae@hs-karlsruhe.de">Andreas Zachariae</maintainer>
@@ -11,7 +11,6 @@
   <buildtool_depend>ament_cmake_python</buildtool_depend>
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
 
-  <depend>rclpy</depend>
   <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
   <depend>diagnostic_updater</depend>
@@ -21,7 +20,6 @@
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>
-  <test_depend>python3-pytest</test_depend>
 
   <member_of_group>rosidl_interface_packages</member_of_group>
 

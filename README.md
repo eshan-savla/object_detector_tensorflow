@@ -3,8 +3,8 @@
 ROS2 Nodes for TensorFlow Object Detection Inference
 
 ## How to start:
-1. Place the tensorflow saved_model folder into the `./ros/data/` path
-2. Write the correct names of possible classes in the file `./ros/data/label_map.txt`
+1. Place the tensorflow saved_model folder into the `./ros/object_detector_tensorflow/data/` path
+2. Write the correct names of possible classes in the file `./ros/object_detector_tensorflow/data/label_map.txt`
    ```yaml
    class1 #label id = 0
    class2 #label id = 1
@@ -55,7 +55,7 @@ ROS2 Nodes for TensorFlow Object Detection Inference
 
 #### Parameters
 
-Change in `ros/config/params.yaml`
+Change in `ros/object_detector_tensorflow/config/params.yaml`
 
 ```bash
 saved_model_path: "data/saved_model"  # Path to TensorFlow saved model folder
@@ -96,7 +96,7 @@ result_image_size: [640,480]    # Dimensions of the result image [x,y]
 
 #### Parameters
 
-Change in `ros/config/params.yaml`
+Change in `ros/object_detector_tensorflow/config/params.yaml`
 
 ```bash
 saved_model_path: "data/saved_model"  # Path to TensorFlow saved model folder
