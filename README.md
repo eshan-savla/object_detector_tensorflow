@@ -2,6 +2,26 @@
 
 ROS2 Nodes for TensorFlow Object Detection Inference
 
+## How to start:
+1. Place the tensorflow saved_model folder into the `./ros/data/` path
+2. Write the correct names of possible classes in the file `./ros/data/label_map.txt`
+   ```yaml
+   class1 #label id = 0
+   class2 #label id = 1
+   ```
+3. Set the correct ROS_DOMAIN_ID in `./.env`
+    ```yaml
+    ROS_DOMAIN_ID=66
+    ```
+4. (only once) Build the docker container
+   ```bash
+   . build_docker.sh
+   ```
+5. Start the docker container
+   ```bash
+   . start_docker.sh
+   ```
+
 ## Interface:
 
 ### Continuous detection node
@@ -100,7 +120,7 @@ result_image_size: [640,480]    # Dimensions of the result image [x,y]
     sudo apt install ros-dashing-ros1-bridge
 
 
-## How to run:
+## How to launch:
 
     ros2 launch object_detector_tensorflow detection.launch.py
     ros2 launch object_detector_tensorflow continuous_detection.launch.py
@@ -136,7 +156,3 @@ result_image_size: [640,480]    # Dimensions of the result image [x,y]
 
 
 export PYTHONPATH=$PYTHONPATH:~/Code/iris_ws/src/object_detector_tensorflow
-
-## Todo:
-
-- [ ] finish Dockerfile

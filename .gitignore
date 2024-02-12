@@ -1,3 +1,13 @@
+# VSCode
+.vscode/
+
+# Custom
+ros/data/saved_model
+# ros/data/label_map.txt
+ros/config/params.yaml
+start_docker.sh
+ros/data/*.png
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -105,7 +115,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+# .env
 .venv
 .senv
 env/
@@ -137,13 +147,3 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-
-# VSCode
-.vscode/
-
-# Custom
-ros/data/saved_model
-ros/data/label_map.txt
-ros/config/params.yaml
-start_docker.sh
-ros/data/*.png
