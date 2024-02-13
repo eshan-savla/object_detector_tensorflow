@@ -21,6 +21,10 @@ ROS2 Nodes for TensorFlow Object Detection Inference
    ```bash
    . start_docker.sh
    ```
+6. Launch the ros node
+   ```bash
+   ros2 launch object_detector_tensorflow detection.launch.py
+   ```
 
 ## Interface:
 
