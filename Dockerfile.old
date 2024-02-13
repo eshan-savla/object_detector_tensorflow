@@ -1,12 +1,33 @@
 ##############################################################################
 ##                                Base Image                                ##
 ##############################################################################
-FROM rwthika/ros2-tf:humble-perception-tf2.11.0-py
+ARG TF_VERSION=2.15.0
+# Not working because it is using python 3.11 which is not compatible with ROS2 humble (python 3.10)
+FROM tensorflow/tensorflow:$TF_VERSION-gpu
+
+RUN apt-get update && apt-get install -y \
+    locales \
+    curl \
+    gnupg2 \
+    lsb-release \
+    git \
+    python3-pip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*rm
 
 ##############################################################################
 ##                        Install ROS2 & dependencies                       ##
 ##############################################################################
+RUN locale-gen en_US en_US.UTF-8 \
+    && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 \
+    && export LANG=en_US.UTF-8
+
+ARG ROS_DISTRO=humble
+RUN curl https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
+RUN sh -c 'echo "deb [arch=$(dpkg --print-architecture)] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'
+
 RUN apt-get update && apt-get install --no-install-recommends -y \
+    ros-$ROS_DISTRO-ros-base \
     ros-$ROS_DISTRO-cv-bridge \
     ros-$ROS_DISTRO-diagnostic-updater \
     ros-$ROS_DISTRO-rqt* \
@@ -16,7 +37,14 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     python3-colcon-common-extensions \
     python3-rosdep \
     python3-argcomplete \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*rm
+    && rm -rf /var/lib/apt/lists/*rm
+
+ENV TZ=Europe/Berlin
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN rosdep init
+RUN rosdep update --rosdistro $ROS_DISTRO
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip install -U pip
 RUN pip3 install -U \
