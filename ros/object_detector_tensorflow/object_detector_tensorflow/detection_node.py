@@ -4,8 +4,8 @@ import rclpy
 from sensor_msgs.msg import Image
 
 from object_detector_tensorflow.base_node import ObjectDetectionBaseNode
-from object_detector_tensorflow.msg import Detections
-from object_detector_tensorflow.srv import DetectObjects
+from object_detector_tensorflow_interfaces.msg import Detections
+from object_detector_tensorflow_interfaces.srv import DetectObjects
 
 
 class DetectionNode(ObjectDetectionBaseNode):

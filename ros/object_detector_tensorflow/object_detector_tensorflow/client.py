@@ -7,8 +7,8 @@ from rclpy.node import Node
 from rclpy.task import Future
 from sensor_msgs.msg import Image, RegionOfInterest
 
-from object_detector_tensorflow.srv import DetectObjects
-from object_detector_tensorflow.msg import Detection
+from object_detector_tensorflow_interfaces.srv import DetectObjects
+from object_detector_tensorflow_interfaces.msg import Detection
 
 
 class Client():

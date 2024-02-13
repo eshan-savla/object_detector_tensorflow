@@ -14,6 +14,7 @@ def generate_launch_description():
         'src',
         'object_detector_tensorflow',
         'ros',
+        'object_detector_tensorflow',
         'config',
         'params.yaml'
     )
@@ -21,7 +22,7 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='object_detector_tensorflow',
-            executable='detection_node.py',
+            executable='detection_node',
             name='detection_node',
             output='screen',
             parameters=[config]
