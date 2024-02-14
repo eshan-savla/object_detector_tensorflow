@@ -21,7 +21,6 @@ find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(diagnostic_updater REQUIRED)
 
 include_directories(
     include
