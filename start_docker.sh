@@ -12,5 +12,6 @@ docker run \
     --gpus all \
     --name odtf \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
-    -v $PWD/ros/data:/home/docker/ros2_ws/src/object_detector_tensorflow/ros/data \
+    -v $PWD/ros/object_detector_tensorflow/data:/home/docker/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data \
     object_detector_tensorflow/ros:foxy
+    
