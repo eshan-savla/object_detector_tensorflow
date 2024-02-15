@@ -17,8 +17,6 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_python REQUIRED)
-find_package(rclcpp REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
@@ -26,12 +24,16 @@ include_directories(
     include
 )
 
+set(DEPENDENCIES 
+    "sensor_msgs"
+)
+
 # Generate custom messages
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Detection.msg"
   "msg/Detections.msg"
   "srv/DetectObjects.srv"
-  DEPENDENCIES sensor_msgs
+  DEPENDENCIES ${DEPENDENCIES}
 )
 
 if(BUILD_TESTING)
@@ -39,5 +41,5 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_export_dependencies(rosidl_default_runtime sensor_msgs)
+ament_export_dependencies(rosidl_default_runtime ${DEPENDENCIES})
 ament_package()
