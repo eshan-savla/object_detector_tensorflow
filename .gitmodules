@@ -1,0 +1,4 @@
+[submodule "ros/point_transformation"]
+	path = ros/point_transformation
+	url = git@github.com:IRAS-HKA/point_transformation.git
+	branch = humble
