@@ -1,5 +1,5 @@
 # VSCode
-.vscode/
+# .vscode/
 
 # Custom
 ros/object_detector_tensorflow/data/saved_model

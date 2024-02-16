@@ -46,15 +46,15 @@ RUN mkdir -p /home/$USER/ros2_ws/src
 ##                             User Dependecies                             ##
 ##############################################################################
 WORKDIR /home/$USER/ros2_ws/src
-# RUN git clone --depth 1 -b master https://project_107_bot:glpat-4sey2MxzfJ4xpykyZx59@www.w.hs-karlsruhe.de/gitlab/iras/common/object_detector_tensorflow.git
-RUN git clone --depth 1 https://github.com/roboception/rc_genicam_driver_ros2.git
+# RUN git clone --depth 1 https://github.com/roboception/rc_genicam_driver_ros2.git
 COPY . ./object_detector_tensorflow
 
 ##############################################################################
 ##                             Build ROS and run                            ##
 ##############################################################################
 WORKDIR /home/$USER/ros2_ws
-RUN . /opt/ros/$ROS_DISTRO/setup.sh && colcon build --symlink-install
+RUN . /opt/ros/$ROS_DISTRO/setup.sh && colcon build --symlink-install \
+    --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 RUN echo "source /home/$USER/ros2_ws/install/setup.bash" >> /home/$USER/.bashrc
 
 RUN touch ros_entrypoint.sh
