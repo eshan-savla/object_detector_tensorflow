@@ -33,6 +33,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Detection.msg"
   "msg/Detections.msg"
   "srv/DetectObjects.srv"
+  "srv/DetectObjectPosition.srv"
   DEPENDENCIES ${DEPENDENCIES}
 )
 
