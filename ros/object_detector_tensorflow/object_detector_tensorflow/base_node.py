@@ -30,6 +30,7 @@ class ObjectDetectionBaseNode(Node):
                 ('saved_model_path', "data/saved_model"),
                 ('label_map_path', "data/label_map.txt"),
                 ('image_topic', "/image"),
+                ('depth_image_topic', "/depth_image"),
                 ('min_probability', 0.5),
                 ('max_gpu_memory_fraction', 1.0),
                 ('result_image_size', [640, 480])
@@ -41,6 +42,8 @@ class ObjectDetectionBaseNode(Node):
             self.get_parameter("label_map_path").get_parameter_value().string_value)
         self.image_topic = self.get_parameter(
             "image_topic").get_parameter_value().string_value
+        self.depth_image_topic = self.get_parameter(
+            "depth_image_topic").get_parameter_value().string_value
         self.min_probability = self.get_parameter(
             "min_probability").get_parameter_value().double_value
         self.max_gpu_memory_fraction = self.get_parameter(

@@ -26,7 +26,7 @@ class DetectionNode(ObjectDetectionBaseNode):
 
     def _detect_objects(self,
                         request: DetectObjects.Request,
-                        response: DetectObjects.Request) -> None:
+                        response: DetectObjects.Response) -> None:
 
         detected_objects, result_image = super()._detect_objects(
             request.image, request.roi)

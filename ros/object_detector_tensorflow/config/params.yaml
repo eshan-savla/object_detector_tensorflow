@@ -14,3 +14,23 @@ continuous_detection_node:
     min_probability: 0.8
     max_gpu_memory_fraction: 1.0
     result_image_size: [640, 480]
+
+detect_and_transform_node:
+  ros__parameters:
+    saved_model_path: "src/object_detector_tensorflow/ros/object_detector_tensorflow/data/saved_model"
+    label_map_path: "src/object_detector_tensorflow/ros/object_detector_tensorflow/data/label_map.txt"
+    image_topic: "/image"
+    depth_image_topic: "/depth_image"  # ROS topic to listen for depth images
+    min_probability: 0.8
+    max_gpu_memory_fraction: 1.0
+    result_image_size: [640, 480]
+
+point_transformation_node:
+  ros__parameters:
+    opening_angle_horizontal: 61.0  # Horizontal opening angle of the used Camera (Roboception) in degrees
+    opening_angle_vertical: 48.0    # Vertical opening angle in degrees
+    focal_factor: 0.75              # Focal factor of the camera lense
+    width: 1920                     # Default width if no image width is given to the service
+    height: 1080                    # Default height
+    default_depth: 1.0              # Default depth in m if no depth image is given
+    max_pixel_range_for_depth_matching: 5 # Search in a NxN area around the correct pixel if it is nan
