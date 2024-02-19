@@ -34,8 +34,10 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
                                            f"{node_name}/detect_object_and_transform", 
                                            self.detect_object_and_transform)
 
-        self.image_publisher = self.create_publisher(Image, f"{node_name}/result_image", 1)
-        self.detections_publisher = self.create_publisher(Detections, f"{node_name}/detections", 1)
+        self.image_publisher = self.create_publisher(Image, f"{node_name}/result_image", 1,
+                                           callback_group=self.external_group)
+        self.detections_publisher = self.create_publisher(Detections, f"{node_name}/detections", 1,
+                                           callback_group=self.external_group)
         
         self.image_subscription = self.create_subscription(Image, self.image_topic, 
                                                            self._image_callback, 10, 
@@ -105,7 +107,7 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
         bridge = CvBridge()
         # img = cv2.imread("/home/docker/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/test_image.jpeg", 0) 
         self.image  = bridge.cv2_to_imgmsg(np.zeros([960, 1280, 3], dtype=np.uint8), encoding="bgr8")
-        self.depth_image  = bridge.cv2_to_imgmsg(np.zeros([480, 640, 3], dtype=np.uint8), encoding="bgr8")
+        self.depth_image  = bridge.cv2_to_imgmsg(np.zeros([480, 640, 3], dtype=np.float32), encoding="32FC3")
         result_image = self.image
         ##############
 
@@ -115,11 +117,17 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
         if not request.class_name == "":  
             detected_objects.detections = [detection for detection in detected_objects.detections if detection.class_name == request.class_name]
 
-        object = max(detected_objects.detections, key=lambda x: x.probability)
+        if len(detected_objects.detections) == 0:
+            self.logger.info(f"No object of class '{request.class_name}' found")
+            response.class_name = "No object of class '{request.class_name}' found"
+            response.probability = 0.0
+            return response
+
+        max_prob_object = max(detected_objects.detections, key=lambda x: x.probability)
 
         center_pixel = Point()
-        center_pixel.x = float(object.bounding_box.x_offset + int(object.bounding_box.width / 2))
-        center_pixel.y = float(object.bounding_box.y_offset + int(object.bounding_box.height / 2))
+        center_pixel.x = float(max_prob_object.bounding_box.x_offset + int(max_prob_object.bounding_box.width / 2))
+        center_pixel.y = float(max_prob_object.bounding_box.y_offset + int(max_prob_object.bounding_box.height / 2))
         
         tranform_request = PixelToPoint.Request()
         tranform_request.pixels = [center_pixel]
@@ -133,8 +141,8 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
         # Transform point with tf from camera frame to base_frame
 
         response.point = transform_response.points[0]
-        response.class_name = object.class_name
-        response.probability = object.probability
+        response.class_name = max_prob_object.class_name
+        response.probability = max_prob_object.probability
         self.logger.info(f"Found object '{response.class_name}' with probability {response.probability} at {response.point}")
         
         return response
@@ -143,7 +151,7 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
 def main(args=None) -> None:
 
     rclpy.init(args=args)
-    executor = MultiThreadedExecutor(num_threads=2)
+    executor = MultiThreadedExecutor(num_threads=3)
 
     node = DetectAndTransformNode()
     executor.add_node(node)
@@ -158,7 +166,6 @@ def main(args=None) -> None:
 
     executor.shutdown()
     node.destroy_node()
-    rclpy.shutdown()
 
 
 if __name__ == '__main__':
