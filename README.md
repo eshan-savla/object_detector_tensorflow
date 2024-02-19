@@ -26,6 +26,29 @@ ROS2 Nodes for TensorFlow Object Detection Inference
    ros2 launch object_detector_tensorflow detection.launch.py
    ```
 
+## How to test:
+1. Place a test image in this folder: `./ros/object_detector_tensorflow/data/test_image.png`
+2. Or change input type in this file: `./ros/object_detector_tensorflow/object_detector_tensorflow/client.py`
+    ```python
+    # Test image empty
+    img = np.zeros([960, 1280, 3], dtype=np.uint8)
+
+    # Test image from folder
+    img = cv2.imread('/home/docker/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/test_image.png', 0) 
+    image = bridge.cv2_to_imgmsg(img)
+
+    # Image collected via camera driver, e.g. rc_visard_ros
+    imgage = Image(height=640, width=480, encoding="rgb8")
+    ```
+3. Launch detection_node
+    ```bash
+    ros2 launch object_detector_tensorflow detection.launch.py
+    ```
+4. Run client node
+    ```bash
+    ros2 run object_detector_tensorflow client
+    ```
+
 ## Interface:
 
 ### Continuous detection node
@@ -129,7 +152,7 @@ result_image_size: [640,480]    # Dimensions of the result image [x,y]
     ros2 launch object_detector_tensorflow detection.launch.py
     ros2 launch object_detector_tensorflow continuous_detection.launch.py
 
-## Testing
+## Debugging
 
 ### generate a test image
 
@@ -157,6 +180,3 @@ result_image_size: [640,480]    # Dimensions of the result image [x,y]
 
     img = cv2.imread('../data/test_image_0.png', 0) 
     image = bridge.cv2_to_imgmsg(img, encoding="bgr8")
-
-
-export PYTHONPATH=$PYTHONPATH:~/Code/iris_ws/src/object_detector_tensorflow

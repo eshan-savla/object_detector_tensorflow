@@ -61,21 +61,22 @@ def main(args=None) -> None:
     node = rclpy.create_node('example_node')
 
     ### Usage example ###
-
-    client = Client(node)
-
-    # Image collected via camera driver, e.g. rc_visard_ros
-    # image = Image(height=640, width=480, encoding="rgb8")
-
-    # Test image from folder
     from cv_bridge import CvBridge
     import numpy as np
     import cv2
 
     bridge = CvBridge()
+    client = Client(node)
 
-    img = cv2.imread('/home/docker/ros2_ws/src/object_detector_tensorflow/ros/data/test_image_0.png', 0) 
+    # Test image empty
+    # img = np.zeros([960, 1280, 3], dtype=np.uint8)
+
+    # Test image from folder
+    img = cv2.imread('/home/docker/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/test_image.png', 0) 
     image = bridge.cv2_to_imgmsg(img)
+
+    # Image collected via camera driver, e.g. rc_visard_ros
+    # imgage = Image(height=640, width=480, encoding="rgb8")
 
     # (Optional) Only search objects in this region of interest
     roi = RegionOfInterest(x_offset=0,
