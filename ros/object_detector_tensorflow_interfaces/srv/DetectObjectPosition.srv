@@ -3,5 +3,5 @@ string base_frame               # point is given relative to this reference fram
 string camera_type              # used camera for depth image ("roboception" or "realsense")
 ---
 geometry_msgs/Point point       # xyz of point in [m]
-float64 probability             # probability of detected object
+float32 probability             # probability of detected object
 string class_name               # class_name of detected object

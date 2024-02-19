@@ -126,6 +126,7 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
         tranform_request.height = self.image.height
         tranform_request.width = self.image.width
         tranform_request.depth_image = self.depth_image
+        tranform_request.camera_type = request.camera_type
 
         transform_response = self.transform_client.call(tranform_request)
 
