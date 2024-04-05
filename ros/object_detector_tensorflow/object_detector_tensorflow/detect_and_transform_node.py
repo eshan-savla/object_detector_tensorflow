@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
-from math import e
-from platform import node
 from time import sleep
+import threading
 
 import rclpy
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
@@ -23,67 +22,92 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
 
         super().__init__(node_name)
 
-        self.image : Image = None 
-        self.depth_image : Image = None
-        self._current_image : Image = None
-        self._current_depth_image : Image = None
+        self.image: Image = None
+        self.depth_image: Image = None
+        self.detected_objects = None
+        self.lock_image = threading.Lock()
+        self.lock_depth_image = threading.Lock()
+        self.lock_detected_objects = threading.Lock()
 
         self.external_group = MutuallyExclusiveCallbackGroup()
 
         self.service = self.create_service(DetectObjectPosition,
-                                           f"{node_name}/detect_object_and_transform", 
+                                           f"{node_name}/detect_object_and_transform",
                                            self.detect_object_and_transform)
 
         self.image_publisher = self.create_publisher(Image, f"{node_name}/result_image", 1,
-                                           callback_group=self.external_group)
+                                                     callback_group=self.external_group)
         self.detections_publisher = self.create_publisher(Detections, f"{node_name}/detections", 1,
-                                           callback_group=self.external_group)
-        
-        self.image_subscription = self.create_subscription(Image, self.image_topic, 
-                                                           self._image_callback, 10, 
+                                                          callback_group=self.external_group)
+
+        self.image_subscription = self.create_subscription(Image, self.image_topic,
+                                                           self._image_callback, 10,
                                                            callback_group=self.external_group)
-        self.depth_image_subscription = self.create_subscription(Image, self.depth_image_topic, 
-                                                                 self._depth_image_callback, 10, 
+        self.depth_image_subscription = self.create_subscription(Image, self.depth_image_topic,
+                                                                 self._depth_image_callback, 10,
                                                                  callback_group=self.external_group)
-        
-        self.transform_client = self.create_client(PixelToPoint, 
+
+        self.transform_client = self.create_client(PixelToPoint,
                                                    'point_transformation_node/pixel_to_point',
                                                    callback_group=self.external_group)
-        
-    def _image_callback(self, msg):
 
-        self._current_image = msg
+    def _image_callback(self, msg: Image) -> None:
+        detected_objects, result_image = super()._detect_objects(msg)
+
+        with self.lock_image:
+            self.image = msg
+
+        with self.lock_detected_objects:
+            self.detected_objects = detected_objects
+
+        self.image_publisher.publish(result_image)
+        self.detections_publisher.publish(detected_objects)
 
     def _depth_image_callback(self, msg):
+        with self.lock_depth_image:
+            self.depth_image = msg
 
-        self._current_depth_image = msg
+    def _reset_images(self):
+        with self.lock_image:
+            self.image = None
 
-    def _images_recieved(self):
-        if self._current_image is not None and self._current_depth_image is not None:
-            self.image = self._current_image
-            self.depth_image = self._current_depth_image
+        with self.lock_depth_image:
+            self.depth_image = None
 
-            print("images recieved")
+        with self.lock_detected_objects:
+            self.detected_objects = None
 
-            return True
+    def _wait_for_new_detection(self) -> tuple[Image, Image, Detections]:
+        self._reset_images()
 
-        return False
+        while rclpy.ok():
+            if self.image is not None and self.depth_image is not None and self.detected_objects is not None:
 
-    def _wait_for_new_images(self):
-        self._current_image = None
-        self._current_depth_image = None
+                with self.lock_image:
+                    current_image = self.image
 
-        while rclpy.ok() and not self._images_recieved():
-            sleep(0.1)
+                with self.lock_depth_image:
+                    current_depth_image = self.depth_image
+
+                with self.lock_detected_objects:
+                    current_detected_objects = self.detected_objects
+
+                print("detection recieved")
+
+                return (current_image, current_depth_image, current_detected_objects)
+
+            else:
+                sleep(0.1)
+
+        return (None, None, None)
 
     def detect_object_and_transform(self,
-                        request: DetectObjectPosition.Request,
-                        response: DetectObjectPosition.Response) -> None:
-        # self._wait_for_new_images()
+                                    request: DetectObjectPosition.Request,
+                                    response: DetectObjectPosition.Response) -> None:
+        image, depth_image, detected_objects = self._wait_for_new_detection()
 
-        # detected_objects, result_image = super()._detect_objects(self.image, None)
-
-        ############# Generate test data
+        ####################
+        # Generate test data
         example_objects = [
             {"class_id": 1, "class_name": "cat", "probability": 0.9, "bounding_box": (10, 20, 30, 40)},
             {"class_id": 2, "class_name": "dog", "probability": 0.8, "bounding_box": (50, 60, 70, 80)},
@@ -105,17 +129,14 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
         from cv_bridge import CvBridge
         import numpy as np
         bridge = CvBridge()
-        # img = cv2.imread("/home/docker/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/test_image.jpeg", 0) 
-        self.image  = bridge.cv2_to_imgmsg(np.zeros([960, 1280, 3], dtype=np.uint8), encoding="bgr8")
-        self.depth_image  = bridge.cv2_to_imgmsg(np.zeros([480, 640, 3], dtype=np.float32), encoding="32FC3")
-        result_image = self.image
-        ##############
+        # img = cv2.imread("/home/docker/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/test_image.jpeg", 0)
+        image = bridge.cv2_to_imgmsg(np.zeros([960, 1280, 3], dtype=np.uint8), encoding="bgr8")
+        depth_image = bridge.cv2_to_imgmsg(np.zeros([480, 640, 3], dtype=np.float32), encoding="32FC3")
+        ####################
 
-        self.image_publisher.publish(result_image)
-        self.detections_publisher.publish(detected_objects)
-
-        if not request.class_name == "":  
-            detected_objects.detections = [detection for detection in detected_objects.detections if detection.class_name == request.class_name]
+        if not request.class_name == "":
+            detected_objects.detections = [
+                detection for detection in detected_objects.detections if detection.class_name == request.class_name]
 
         if len(detected_objects.detections) == 0:
             self.logger.info(f"No object of class '{request.class_name}' found")
@@ -128,12 +149,12 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
         center_pixel = Point()
         center_pixel.x = float(max_prob_object.bounding_box.x_offset + int(max_prob_object.bounding_box.width / 2))
         center_pixel.y = float(max_prob_object.bounding_box.y_offset + int(max_prob_object.bounding_box.height / 2))
-        
+
         tranform_request = PixelToPoint.Request()
         tranform_request.pixels = [center_pixel]
-        tranform_request.height = self.image.height
-        tranform_request.width = self.image.width
-        tranform_request.depth_image = self.depth_image
+        tranform_request.height = image.height
+        tranform_request.width = image.width
+        tranform_request.depth_image = depth_image
         tranform_request.camera_type = request.camera_type
 
         transform_response = self.transform_client.call(tranform_request)
@@ -143,8 +164,9 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
         response.point = transform_response.points[0]
         response.class_name = max_prob_object.class_name
         response.probability = max_prob_object.probability
-        self.logger.info(f"Found object '{response.class_name}' with probability {response.probability} at {response.point}")
-        
+        self.logger.info(
+            f"Found object '{response.class_name}' with probability {response.probability} at {response.point}")
+
         return response
 
 
