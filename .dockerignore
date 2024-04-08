@@ -7,7 +7,3 @@ README.md
 .DS_Store
 .idea
 .vscode
-
-# Custom scripts
-start_docker.sh
-build_docker.sh
