@@ -7,7 +7,10 @@ import rclpy
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import Point, PointStamped
+from tf2_ros import TransformException
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_listener import TransformListener
 
 from object_detector_tensorflow.base_node import ObjectDetectionBaseNode
 from object_detector_tensorflow_interfaces.msg import Detections, Detection
@@ -28,6 +31,9 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
         self.lock_image = threading.Lock()
         self.lock_depth_image = threading.Lock()
         self.lock_detected_objects = threading.Lock()
+
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
 
         self.external_group = MutuallyExclusiveCallbackGroup()
 
@@ -101,11 +107,7 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
 
         return (None, None, None)
 
-    def detect_object_and_transform(self,
-                                    request: DetectObjectPosition.Request,
-                                    response: DetectObjectPosition.Response) -> None:
-        image, depth_image, detected_objects = self._wait_for_new_detection()
-
+    def _get_example_data(self):
         ####################
         # Generate test data
         example_objects = [
@@ -132,8 +134,45 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
         # img = cv2.imread("/home/docker/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/test_image.jpeg", 0)
         image = bridge.cv2_to_imgmsg(np.zeros([960, 1280, 3], dtype=np.uint8), encoding="bgr8")
         depth_image = bridge.cv2_to_imgmsg(np.zeros([480, 640, 3], dtype=np.float32), encoding="32FC3")
+
+        return image, depth_image, detected_objects
         ####################
 
+    def _transform_point_to_base_frame(self, base_frame: str, point: PointStamped) -> PointStamped:
+        # Transformation from camera to world is necessary
+        # Add this to the launch file and change parameters
+        #
+        # Node(
+        #     package='tf2_ros',
+        #     executable='static_transform_publisher',
+        #     arguments = ['0', '0', '1', '0', '0', '0', 'world', 'camera']
+        # ),
+
+        try:
+            t = self.tf_buffer.lookup_transform(
+                base_frame,
+                "camera",
+                rclpy.time.Time(),
+                rclpy.duration.Duration(seconds=1.0)
+            )
+        except TransformException as ex:
+            self.get_logger().info(
+                f'Could not transform {base_frame} to camera: {ex}')
+            return PointStamped()
+
+        return self.tf_buffer.transform(point,
+                                        base_frame,
+                                        timeout=rclpy.duration.Duration(seconds=1.0),
+                                        new_type=PointStamped)
+
+    def detect_object_and_transform(self,
+                                    request: DetectObjectPosition.Request,
+                                    response: DetectObjectPosition.Response) -> None:
+
+        # image, depth_image, detected_objects = self._wait_for_new_detection()
+        image, depth_image, detected_objects = self._get_example_data()
+
+        # Filter detected objects by class name
         if not request.class_name == "":
             detected_objects.detections = [
                 detection for detection in detected_objects.detections if detection.class_name == request.class_name]
@@ -150,6 +189,7 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
         center_pixel.x = float(max_prob_object.bounding_box.x_offset + int(max_prob_object.bounding_box.width / 2))
         center_pixel.y = float(max_prob_object.bounding_box.y_offset + int(max_prob_object.bounding_box.height / 2))
 
+        # Transform pixel to point
         tranform_request = PixelToPoint.Request()
         tranform_request.pixels = [center_pixel]
         tranform_request.height = image.height
@@ -157,11 +197,16 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
         tranform_request.depth_image = depth_image
         tranform_request.camera_type = request.camera_type
 
-        transform_response = self.transform_client.call(tranform_request)
+        transform_response: PixelToPoint.Response = self.transform_client.call(tranform_request)
 
-        # Transform point with tf from camera frame to base_frame
+        # Transform point from camera frame to base_frame
+        point_stamped = PointStamped()
+        point_stamped.header = image.header
+        point_stamped.point = transform_response.points[0]
+        point_transformed = self._transform_point_to_base_frame(request.base_frame, point_stamped)
 
-        response.point = transform_response.points[0]
+        # Return transformed point
+        response.point = point_transformed.point
         response.class_name = max_prob_object.class_name
         response.probability = max_prob_object.probability
         self.logger.info(

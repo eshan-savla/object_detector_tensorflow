@@ -23,7 +23,7 @@ class ObjectDetection:
         self.max_gpu_memory_fraction = max(min(max_gpu_memory_fraction, 0), 1)
 
         self._load_label_map()
-        self._load_saved_model()
+        # self._load_saved_model()
 
     def _load_label_map(self):
 
