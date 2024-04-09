@@ -49,6 +49,12 @@ ROS2 Nodes for TensorFlow Object Detection Inference
     ros2 run object_detector_tensorflow client
     ```
 
+Test `detect_and_transform_node`
+```bash
+ros2 launch object_detector_tensorflow detect_and_transform.launch.py
+ros2 service call /detect_and_transform_node/detect_object_d_transform object_detector_tensorflow_interfaces/srv/DetectObjectPosition "{class_name: '', base_frame: 'base', camera_type: 'roboception'}"
+```
+
 ## Interface:
 
 ### Continuous detection node
