@@ -8,6 +8,7 @@ import cv2
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Header
+from geometry_msgs.msg import Point
 from sensor_msgs.msg import Image, RegionOfInterest
 from cv_bridge import CvBridge, CvBridgeError
 
@@ -159,11 +160,15 @@ class ObjectDetectionBaseNode(Node):
                 width=(detection["bounding_box"][3] -
                        detection["bounding_box"][1]))
 
+            center = Point(x=detection["center"][0],
+                           y=detection["center"][1])
+
             detected_objects.detections.append(Detection(
                 class_id=detection["class_id"],
                 class_name=detection["class_name"],
                 probability=detection["probability"],
-                bounding_box=bounding_box))
+                bounding_box=bounding_box,
+                center=center))
 
         detected_objects.image_header = image_header
         detected_objects.header.stamp = self.get_clock().now().to_msg()

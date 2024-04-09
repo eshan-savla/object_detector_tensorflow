@@ -100,13 +100,17 @@ class ObjectDetection:
             detection["class_id"] = int(detection["class_id"])
             detection["probability"] = float(detection["probability"])
 
-            box = [int(detection["bounding_box"][0] * box_scale[0] + box_offset[0]),
-                   int(detection["bounding_box"][1] *
-                       box_scale[1] + box_offset[1]),
-                   int(detection["bounding_box"][2] *
-                       box_scale[0] + box_offset[0]),
-                   int(detection["bounding_box"][3] * box_scale[1] + box_offset[1])]
+            detection["bounding_box"] = [int(detection["bounding_box"][0] * box_scale[0] + box_offset[0]),
+                                         int(detection["bounding_box"][1] * box_scale[1] + box_offset[1]),
+                                         int(detection["bounding_box"][2] * box_scale[0] + box_offset[0]),
+                                         int(detection["bounding_box"][3] * box_scale[1] + box_offset[1])]
 
-            detection["bounding_box"] = box
+            # x, y = np.argwhere(detection["mask"] > 0).sum(0) / detection["mask"].size
+            # x, y = (x / detection["mask"].shape[1] * box_scale[1] + box_offset[1],
+            #         y / detection["mask"].shape[0] * box_scale[0] + box_offset[0])
+            x, y = (detection["bounding_box"][1] + (detection["bounding_box"][3] - detection["bounding_box"][1]) / 2,
+                    detection["bounding_box"][0] + (detection["bounding_box"][2] - detection["bounding_box"][0]) / 2)
+
+            detection["center"] = [float(x), float(y)]
 
         return detections

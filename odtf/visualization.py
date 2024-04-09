@@ -38,6 +38,13 @@ class Visualization:
                             self.detection_color,
                             text)
 
+            cv2.circle(image,
+                       (int(detection["center"][0]),
+                        int(detection["center"][1])),
+                       5,
+                       (0, 255, 0),
+                       2)
+
             if detection["mask"] is not None:
                 image = self._draw_mask(image,
                                         detection["mask"],
