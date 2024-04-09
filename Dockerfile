@@ -39,6 +39,11 @@ RUN groupadd -g "$GID" "$USER"  && \
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/sudogrp
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> /etc/bash.bashrc
 
+# Set ROS2 DDS profile
+COPY ./dds_profile.xml /home/$USER
+RUN chown $USER:$USER /home/$USER/dds_profile.xml
+ENV FASTRTPS_DEFAULT_PROFILES_FILE=/home/$USER/dds_profile.xml
+
 USER $USER 
 RUN mkdir -p /home/$USER/ros2_ws/src
 
