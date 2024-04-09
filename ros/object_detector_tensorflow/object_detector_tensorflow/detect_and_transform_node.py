@@ -36,6 +36,7 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
         self.external_group = MutuallyExclusiveCallbackGroup()
+        self.depth_image_group = MutuallyExclusiveCallbackGroup()
 
         self.service = self.create_service(DetectObjectPosition,
                                            f"{node_name}/detect_object_and_transform",
@@ -51,7 +52,7 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
                                                            callback_group=self.external_group)
         self.depth_image_subscription = self.create_subscription(Image, self.depth_image_topic,
                                                                  self._depth_image_callback, 10,
-                                                                 callback_group=self.external_group)
+                                                                 callback_group=self.depth_image_group)
 
         self.transform_client = self.create_client(PixelToPoint,
                                                    'point_transformation_node/pixel_to_point',
@@ -84,11 +85,10 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
             self.detected_objects = None
 
     def _wait_for_new_detection(self) -> tuple[Image, Image, Detections]:
-        self._reset_images()
+        # self._reset_images()
 
         while rclpy.ok():
             if self.image is not None and self.depth_image is not None and self.detected_objects is not None:
-
                 with self.lock_image:
                     current_image = self.image
 
@@ -98,11 +98,12 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
                 with self.lock_detected_objects:
                     current_detected_objects = self.detected_objects
 
-                print("detection recieved")
+                self.get_logger().info("detection recieved")
 
                 return (current_image, current_depth_image, current_detected_objects)
 
             else:
+                self.get_logger().info('sleep')
                 sleep(0.1)
 
         return (None, None, None)
@@ -169,8 +170,8 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
                                     request: DetectObjectPosition.Request,
                                     response: DetectObjectPosition.Response) -> None:
 
-        # image, depth_image, detected_objects = self._wait_for_new_detection()
-        image, depth_image, detected_objects = self._get_example_data()
+        image, depth_image, detected_objects = self._wait_for_new_detection()
+        # image, depth_image, detected_objects = self._get_example_data()
 
         # Filter detected objects by class name
         if not request.class_name == "":
@@ -185,13 +186,9 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
 
         max_prob_object = max(detected_objects.detections, key=lambda x: x.probability)
 
-        center_pixel = Point()
-        center_pixel.x = float(max_prob_object.bounding_box.x_offset + int(max_prob_object.bounding_box.width / 2))
-        center_pixel.y = float(max_prob_object.bounding_box.y_offset + int(max_prob_object.bounding_box.height / 2))
-
         # Transform pixel to point
         tranform_request = PixelToPoint.Request()
-        tranform_request.pixels = [center_pixel]
+        tranform_request.pixels = [max_prob_object.center]
         tranform_request.height = image.height
         tranform_request.width = image.width
         tranform_request.depth_image = depth_image
