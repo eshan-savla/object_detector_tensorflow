@@ -7,7 +7,7 @@ import rclpy
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import Point, Transform
+from geometry_msgs.msg import Point, TransformStamped
 import tf2_ros
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
@@ -37,6 +37,7 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
 
         self.external_group = MutuallyExclusiveCallbackGroup()
         self.depth_image_group = MutuallyExclusiveCallbackGroup()
+        self.transform_service_group = MutuallyExclusiveCallbackGroup()
 
         self.service = self.create_service(DetectObjectPosition,
                                            f"{node_name}/detect_object_and_transform",
@@ -56,7 +57,9 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
 
         self.transform_client = self.create_client(PixelToPoint,
                                                    'point_transformation_node/pixel_to_point',
-                                                   callback_group=self.external_group)
+                                                   callback_group=self.transform_service_group)
+
+        self.tf_publisher = tf2_ros.TransformBroadcaster(self)
 
     def _image_callback(self, msg: Image) -> None:
         detected_objects, result_image = super()._detect_objects(msg)
@@ -139,40 +142,60 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
         return image, depth_image, detected_objects
         ####################
 
-    def _transform_point_to_base_frame(self, base_frame: str, pose: Transform) -> Point:
-        # Transformation from camera to world is necessary
-        # Add this to the launch file and change parameters
-        #
-        # Node(
-        #     package='tf2_ros',
-        #     executable='static_transform_publisher',
-        #     arguments = ['0', '0', '1', '0', '0', '0', 'world', 'camera']
-        # ),
+    def _transform_point_to_base_frame(self, base_frame: str, point: Point) -> Point:
+        t = TransformStamped()
 
-        try:
-            t = self.tf_buffer.lookup_transform(
+        t.header.stamp = self.get_clock().now().to_msg()
+        t.header.frame_id = 'camera'
+        t.child_frame_id = 'detection'
+        t.transform.translation.x = point.x
+        t.transform.translation.y = point.y
+        t.transform.translation.z = point.z
+        t.transform.rotation.x = 0.0
+        t.transform.rotation.y = 0.0
+        t.transform.rotation.z = 0.0
+        t.transform.rotation.w = 1.0
+
+        self.tf_publisher.sendTransform(t)
+
+        while rclpy.ok():
+            if self.tf_buffer.can_transform(
                 base_frame,
-                "camera",
+                "detection",
                 rclpy.time.Time(),
                 rclpy.duration.Duration(seconds=1.0)
-            )
-        except tf2_ros.TransformException as ex:
-            self.get_logger().info(
-                f'Could not transform {base_frame} to camera: {ex}')
-            return Point()
+            ):
+                self.get_logger().info("transform possible")
+                try:
+                    t_detection = self.tf_buffer.lookup_transform(
+                        base_frame,
+                        "detection",
+                        rclpy.time.Time(),
+                        rclpy.duration.Duration(seconds=1.0)
+                    )
+                except tf2_ros.TransformException as ex:
+                    self.get_logger().info(
+                        f'Could not transform {base_frame} to detection: {ex}')
+                    return Point()
+                self.get_logger().info("transform done")
+                break
+            else:
+                self.get_logger().info("transform waiting...")
+                sleep(0.1)
 
-        print(t)
+        # transform = tf2_ros.TransformStamped()
+        # transform = tf2_ros.convert(pose, tf2_ros.TransformStamped)
 
-        transform = tf2_ros.TransformStamped()
-        tf2_ros.convert(pose, transform)
+        # transformed_pose = self.tf_buffer.transform(pose,
+        #                                             base_frame,
+        #                                             timeout=rclpy.duration.Duration(seconds=1.0))
 
-        transformed_pose = self.tf_buffer.transform(transform,
-                                                    base_frame,
-                                                    timeout=rclpy.duration.Duration(seconds=1.0))
+        # transformed_point = tf2_ros.convert(transformed_pose, PointStamped)
 
-        print(transformed_pose)
         transformed_point = Point()
-        tf2_ros.convert(transformed_pose, transformed_point)
+        transformed_point.x = t_detection.transform.translation.x
+        transformed_point.y = t_detection.transform.translation.y
+        transformed_point.z = t_detection.transform.translation.z
 
         return transformed_point
 
@@ -207,12 +230,7 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
         transform_response: PixelToPoint.Response = self.transform_client.call(tranform_request)
 
         # Transform point from camera frame to base_frame
-        pose_stamped = Transform()
-        # pose_stamped.header = image.header
-        pose_stamped.translation.x = transform_response.points[0].x
-        pose_stamped.translation.y = transform_response.points[0].y
-        pose_stamped.translation.z = transform_response.points[0].z
-        point_transformed = self._transform_point_to_base_frame(request.base_frame, pose_stamped)
+        point_transformed = self._transform_point_to_base_frame(request.base_frame, transform_response.points[0])
 
         # Return transformed point
         response.point = point_transformed
