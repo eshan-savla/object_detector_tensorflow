@@ -1,2 +1,7 @@
-class1
-class2
+Tuete
+Keilriemen_klein
+Keilriemen_gross
+Box_Wischblatt
+Box_Messwertgeber
+Box_Bremsbacken
+Box_Gluehlampe

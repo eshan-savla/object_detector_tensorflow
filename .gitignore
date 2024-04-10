@@ -2,11 +2,9 @@
 # .vscode/
 
 # Custom
-ros/object_detector_tensorflow/data/saved_model
-ros/object_detector_tensorflow/data/label_map.txt
+ros/object_detector_tensorflow/data/*
+!ros/object_detector_tensorflow/data/label_map.txt.example
 ros/config/params.yaml
-start_docker.sh
-ros/data/*.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
