@@ -2,6 +2,9 @@
 .git
 .gitignore
 
+# Ignore bags
+ros/object_detector_tensorflow/data/aip_rc_bosch
+
 # Ignore default files
 README.md
 .DS_Store
