@@ -8,7 +8,7 @@ from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point, Transform
-from tf2_ros import TransformException
+import tf2_ros
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
@@ -27,7 +27,7 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
 
         self.image: Image = None
         self.depth_image: Image = None
-        self.detected_objects = None
+        self.detected_objects: Detections = None
         self.lock_image = threading.Lock()
         self.lock_depth_image = threading.Lock()
         self.lock_detected_objects = threading.Lock()
@@ -106,7 +106,7 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
                 self.get_logger().info('sleep')
                 sleep(0.1)
 
-        return (None, None, None)
+        raise Exception("No new Detection received")
 
     def _get_example_data(self):
         ####################
@@ -156,29 +156,29 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
                 rclpy.time.Time(),
                 rclpy.duration.Duration(seconds=1.0)
             )
-        except TransformException as ex:
+        except tf2_ros.TransformException as ex:
             self.get_logger().info(
                 f'Could not transform {base_frame} to camera: {ex}')
             return Point()
 
         print(t)
 
-        # pose = self.tf_buffer.transform(pose,
-        #                                 base_frame,
-        #                                 timeout=rclpy.duration.Duration(seconds=1.0))
+        transform = tf2_ros.TransformStamped()
+        tf2_ros.convert(pose, transform)
 
-        # print(pose)
+        transformed_pose = self.tf_buffer.transform(transform,
+                                                    base_frame,
+                                                    timeout=rclpy.duration.Duration(seconds=1.0))
 
+        print(transformed_pose)
         transformed_point = Point()
-        transformed_point.x = t.transform.translation.x
-        transformed_point.y = t.transform.translation.y
-        transformed_point.z = t.transform.translation.z
+        tf2_ros.convert(transformed_pose, transformed_point)
 
         return transformed_point
 
     def detect_object_and_transform(self,
                                     request: DetectObjectPosition.Request,
-                                    response: DetectObjectPosition.Response) -> None:
+                                    response: DetectObjectPosition.Response) -> DetectObjectPosition.Response:
 
         image, depth_image, detected_objects = self._wait_for_new_detection()
         # image, depth_image, detected_objects = self._get_example_data()
@@ -190,7 +190,7 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
 
         if len(detected_objects.detections) == 0:
             self.logger.info(f"No object of class '{request.class_name}' found")
-            response.class_name = "No object of class '{request.class_name}' found"
+            response.class_name = f"No object of class '{request.class_name}' found"
             response.probability = 0.0
             return response
 
