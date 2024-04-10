@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from typing import Tuple
 
 import numpy as np
 import cv2
@@ -79,12 +80,12 @@ class ObjectDetectionBaseNode(Node):
 
     def _detect_objects(self,
                         image: Image,
-                        roi: RegionOfInterest = None) -> None:
+                        roi: RegionOfInterest = None) -> Tuple[Detections, Image]:
 
         self.logger.info("Detecting objects")
 
-        detected_objects = None
-        result_image = None
+        detected_objects: Detections = None
+        result_image: Image = None
 
         if roi is not None:
             if not any([roi.x_offset, roi.y_offset,
