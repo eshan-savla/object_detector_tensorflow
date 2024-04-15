@@ -2,7 +2,7 @@ detection_node:
   ros__parameters:
     saved_model_path: "~/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/saved_model"  # Path to TensorFlow saved model folder
     label_map_path: "~/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/label_map.txt"  # Text file with class names (one label per line)
-    min_probability: 0.8            # Minimum probability for detections to be reported
+    min_probability: 0.95            # Minimum probability for detections to be reported
     max_gpu_memory_fraction: 1.0    # Limits the GPU memory usage of the TensorFlow model to only a fraction (between 0 and 1)
     result_image_size: [640, 480]    # Dimensions of the result image [x,y]
     
@@ -11,7 +11,7 @@ continuous_detection_node:
     saved_model_path: "~/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/saved_model"
     label_map_path: "~/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/label_map.txt"
     image_topic: "/image"  # ROS topic to listen for images
-    min_probability: 0.8
+    min_probability: 0.95
     max_gpu_memory_fraction: 1.0
     result_image_size: [640, 480]
 
@@ -21,15 +21,15 @@ detect_and_transform_node:
     label_map_path: "~/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/label_map.txt"
     image_topic: "/image"
     depth_image_topic: "/depth_image"  # ROS topic to listen for depth images
-    min_probability: 0.8
+    min_probability: 0.95
     max_gpu_memory_fraction: 1.0
     result_image_size: [640, 480]
 
 point_transformation_node:
   ros__parameters:
-    opening_angle_horizontal: 61.0  # Horizontal opening angle of the used Camera (Roboception) in degrees
-    opening_angle_vertical: 48.0    # Vertical opening angle in degrees
-    focal_factor: 0.75              # Focal factor of the camera lense
+    opening_angle_horizontal: 43.0  # Horizontal opening angle of the used Camera (Roboception) in degrees
+    opening_angle_vertical: 33.0    # Vertical opening angle in degrees
+    focal_factor: 1.0                 # Focal factor of the camera lense
     width: 1920                     # Default width if no image width is given to the service
     height: 1080                    # Default height
     default_depth: 1.0              # Default depth in m if no depth image is given
