@@ -29,6 +29,11 @@ class Visualization:
 
             self._draw_rect(image, roi, self.roi_color)
 
+        # Use for referenceing
+        # image[image.shape[0] // 2 - 2:image.shape[0] // 2 + 3,
+        #       image.shape[1] // 2 - 2:image.shape[1] // 2 + 3,
+        #       :] = (0, 0, 255)
+
         for detection in detections:
             rect = self._roi2rect(detection["bounding_box"])
             text = f"{detection['class_name']} ({int(detection['probability'] * 100)} %)"
