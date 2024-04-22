@@ -49,10 +49,10 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
                                                           callback_group=self.external_group)
 
         self.image_subscription = self.create_subscription(Image, self.image_topic,
-                                                           self._image_callback, 10,
+                                                           self._image_callback, 1,
                                                            callback_group=self.external_group)
         self.depth_image_subscription = self.create_subscription(Image, self.depth_image_topic,
-                                                                 self._depth_image_callback, 10,
+                                                                 self._depth_image_callback, 1,
                                                                  callback_group=self.depth_image_group)
 
         self.transform_client = self.create_client(PixelToPoint,
