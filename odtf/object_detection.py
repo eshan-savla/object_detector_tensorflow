@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from time import time
 
 import numpy as np
 import tensorflow as tf
@@ -11,7 +12,8 @@ class ObjectDetection:
     def __init__(self,
                  saved_model_path: str,
                  label_map_path: str = None,
-                 max_gpu_memory_fraction: float = 1.0):
+                 max_gpu_memory_fraction: float = 1.0,
+                 logger=None):
 
         self.saved_model_path = saved_model_path
         self.label_map_path = label_map_path
@@ -21,6 +23,8 @@ class ObjectDetection:
         self.labels = None
 
         self.max_gpu_memory_fraction = max(min(max_gpu_memory_fraction, 0), 1)
+
+        self._logger = logger
 
         self._load_label_map()
         self._load_saved_model()
@@ -50,7 +54,7 @@ class ObjectDetection:
 
     def _run_model(self, image: np.ndarray):
 
-        detection_dict = self.model([image])
+        detection_dict = self.model(tf.expand_dims(image, 0))
 
         num = detection_dict["num_detections"][0].numpy().astype(np.int32)
         classes = detection_dict["detection_classes"][0].numpy().astype(
@@ -94,7 +98,12 @@ class ObjectDetection:
 
             box_offset = (roi[0], roi[1])
 
+        start_time = time()
+
         detections = self._run_model(image)
+
+        if self._logger is not None:
+            self._logger.info(f"Inference took {time() - start_time:.3f} s")
 
         for detection in detections:
             detection["class_id"] = int(detection["class_id"])

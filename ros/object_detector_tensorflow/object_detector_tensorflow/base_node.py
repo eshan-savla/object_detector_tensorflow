@@ -57,7 +57,8 @@ class ObjectDetectionBaseNode(Node):
 
         self.detection = ObjectDetection(self.saved_model_path,
                                          self.label_map_path,
-                                         self.max_gpu_memory_fraction)
+                                         self.max_gpu_memory_fraction,
+                                         self.logger)
 
         self.visualization = Visualization()
 
