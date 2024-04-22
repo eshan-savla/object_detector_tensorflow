@@ -1,7 +1,7 @@
-Tuete
-Keilriemen_klein
+Unbekannt
+Unbekannt
 Keilriemen_gross
 Box_Wischblatt
 Box_Messwertgeber
-Box_Bremsbacken
+Unbekannt
 Box_Gluehlampe

@@ -10,14 +10,16 @@ class Visualization:
                  font: int = cv2.FONT_HERSHEY_SIMPLEX,
                  font_scale: int = 1,
                  font_thickness: int = 2,
-                 roi_color: tuple = (0, 255, 0),
-                 detection_color: tuple = (255, 0, 0)):
+                 roi_color: tuple = (0, 0, 255),
+                 detection_color: tuple = (0, 255, 0),
+                 other_color: tuple = (255, 0, 0)):
 
         self.font = font
         self.font_scale = font_scale
         self.font_thickness = font_thickness
         self.roi_color = roi_color
         self.detection_color = detection_color
+        self.other_color = other_color
 
     def draw_detections(self,
                         image: np.ndarray,
@@ -34,13 +36,20 @@ class Visualization:
         #       image.shape[1] // 2 - 2:image.shape[1] // 2 + 3,
         #       :] = (0, 0, 255)
 
-        for detection in detections:
+        for index, detection in enumerate(detections):
+            color = (self.detection_color
+                     if index == 0 else
+                     (0, 0, 255))
+
+            if detection["class_id"] == 1 or detection["class_id"] == 2 or detection["class_id"] == 6:
+                color = self.other_color
+
             rect = self._roi2rect(detection["bounding_box"])
             text = f"{detection['class_name']} ({int(detection['probability'] * 100)} %)"
 
             self._draw_rect(image,
                             rect,
-                            self.detection_color,
+                            color,
                             text)
 
             cv2.circle(image,
@@ -54,7 +63,7 @@ class Visualization:
                 image = self._draw_mask(image,
                                         detection["mask"],
                                         rect,
-                                        self.detection_color)
+                                        color)
 
         return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
@@ -118,7 +127,7 @@ class Visualization:
                    mask: np.ndarray,
                    rect: list,
                    color=(255, 255, 255),
-                   alpha=.5):
+                   alpha=.2):
 
         try:
             size = (rect[2][0] - rect[0][0],
