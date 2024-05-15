@@ -33,5 +33,12 @@ def generate_launch_description():
             name='point_transformation_node',
             output='screen',
             parameters=[config]
-        ),
+        )
+        # Node(
+        #     package='object_detector_tensorflow',
+        #     executable='client_detect_and_transform',
+        #     name='client_detect_and_transform',
+        #     output='screen',
+        #     parameters=[config]
+        # )
     ])

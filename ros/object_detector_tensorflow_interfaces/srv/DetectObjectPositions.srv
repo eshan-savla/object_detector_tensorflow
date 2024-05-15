@@ -1,0 +1,6 @@
+string[] class_names            # filter for class name and select object with highest probability (If empty,all objects are considered)
+string base_frame               # point is given relative to this reference frame
+string camera_type              # used camera for depth image ("roboception" or "realsense")
+---
+string[] class_names               # All detected, transformed and (filtered) class names
+Detection[] detected_positions

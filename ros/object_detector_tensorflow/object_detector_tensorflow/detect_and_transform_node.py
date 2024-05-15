@@ -14,7 +14,7 @@ from tf2_ros.transform_listener import TransformListener
 
 from object_detector_tensorflow.base_node import ObjectDetectionBaseNode
 from object_detector_tensorflow_interfaces.msg import Detections, Detection
-from object_detector_tensorflow_interfaces.srv import DetectObjectPosition
+from object_detector_tensorflow_interfaces.srv import DetectObjectPosition, DetectObjectPositions
 from point_transformation_interfaces.srv import PixelToPoint
 
 
@@ -42,6 +42,10 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
         self.service = self.create_service(DetectObjectPosition,
                                            f"{node_name}/detect_object_and_transform",
                                            self.detect_object_and_transform)
+        
+        self.service_2 = self.create_service(DetectObjectPositions,
+                                             f"{node_name}/detect_objects_and_transform",
+                                            self.detect_objects_and_transform)
 
         self.image_publisher = self.create_publisher(Image, f"{node_name}/result_image", 1,
                                                      callback_group=self.external_group)
@@ -92,6 +96,7 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
 
         while rclpy.ok():
             if self.image is not None and self.depth_image is not None and self.detected_objects is not None:
+                self.get_logger().warn("Stuff was recieved and is not none")
                 with self.lock_image:
                     current_image = self.image
 
@@ -106,7 +111,13 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
                 return (current_image, current_depth_image, current_detected_objects)
 
             else:
-                self.get_logger().info('sleep')
+                if self.image is None:
+                    self.get_logger().warn('no image', throttle_duration_sec=2.0)
+                if self.depth_image is None:
+                    self.get_logger().warn('no depth image', throttle_duration_sec=2.0)
+                if self.detected_objects is None:
+                    self.get_logger().warn('no detection', throttle_duration_sec=2.0)
+                self.get_logger().info('sleep', throttle_duration_sec=2.0)
                 sleep(0.1)
 
         raise Exception("No new Detection received")
@@ -198,12 +209,35 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
         transformed_point.z = t_detection.transform.translation.z
 
         return transformed_point
+    
+    def _get_detected_position(self, object: Detection, image: Image, depth_image: Image) -> Detection:
+        detected_position = Detection()
+        detected_position.class_name = object.class_name
+        detected_position.probability = object.probability
+
+        # Transform pixel to point
+        tranform_request = PixelToPoint.Request()
+        tranform_request.pixels = [object.center]
+        tranform_request.height = image.height
+        tranform_request.width = image.width
+        tranform_request.depth_image = depth_image
+        tranform_request.camera_type = "camera"
+
+        transform_response: PixelToPoint.Response = self.transform_client.call(tranform_request)
+
+        # Transform point from camera frame to base_frame
+        point_transformed = self._transform_point_to_base_frame("base_link", transform_response.points[0])
+
+        detected_position.center = point_transformed
+        self.get_logger().info(f"Returning detected transformed points: {detected_position.center}")
+        return detected_position
 
     def detect_object_and_transform(self,
                                     request: DetectObjectPosition.Request,
                                     response: DetectObjectPosition.Response) -> DetectObjectPosition.Response:
 
         image, depth_image, detected_objects = self._wait_for_new_detection()
+        self.logger.warn(f"Got images and detections")
         # image, depth_image, detected_objects = self._get_example_data()
 
         # Filter detected objects by class name
@@ -219,28 +253,49 @@ class DetectAndTransformNode(ObjectDetectionBaseNode):
 
         max_prob_object = max(detected_objects.detections, key=lambda x: x.probability)
 
-        # Transform pixel to point
-        tranform_request = PixelToPoint.Request()
-        tranform_request.pixels = [max_prob_object.center]
-        tranform_request.height = image.height
-        tranform_request.width = image.width
-        tranform_request.depth_image = depth_image
-        tranform_request.camera_type = request.camera_type
+        detected_position = self._get_detected_position(max_prob_object, image, depth_image)
+        # # Transform pixel to point
+        # tranform_request = PixelToPoint.Request()
+        # tranform_request.pixels = [max_prob_object.center]
+        # tranform_request.height = image.height
+        # tranform_request.width = image.width
+        # tranform_request.depth_image = depth_image
+        # tranform_request.camera_type = request.camera_type
 
-        transform_response: PixelToPoint.Response = self.transform_client.call(tranform_request)
+        # transform_response: PixelToPoint.Response = self.transform_client.call(tranform_request)
 
-        # Transform point from camera frame to base_frame
-        point_transformed = self._transform_point_to_base_frame(request.base_frame, transform_response.points[0])
+        # # Transform point from camera frame to base_frame
+        # point_transformed = self._transform_point_to_base_frame(request.base_frame, transform_response.points[0])
 
         # Return transformed point
-        response.point = point_transformed
+        response.point = detected_position.center
         response.class_name = max_prob_object.class_name
         response.probability = max_prob_object.probability
         self.logger.info(
             f"Found object '{response.class_name}' with probability {response.probability} at {response.point}")
-
+        self._reset_images()
         return response
+    
+    def detect_objects_and_transform(self, request: DetectObjectPositions.Request, response: DetectObjectPositions.Response) -> DetectObjectPositions.Response:
+        image, depth_image, detected_objects = self._wait_for_new_detection()
 
+        if not len(request.class_names) == 0:
+            detected_objects.detections = [
+                detection for detection in detected_objects.detections if detection.class_name in request.class_names] 
+        
+        if len(detected_objects.detections) == 0:
+            self.logger.info(f"No object of classes '{request.class_names}' found")
+            response.class_names = f"No object of class '{request.class_names}' found"
+            return response
+
+        for detected_object in detected_objects.detections:
+            detected_object.center = (self._get_detected_position(detected_object, image, depth_image)).center
+            self.get_logger().info(f"Got new position of detected object in detections")
+        
+        response.class_names = request.class_names
+        response.detected_positions = detected_objects.detections
+        self._reset_images()
+        return response
 
 def main(args=None) -> None:
 

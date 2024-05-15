@@ -26,6 +26,7 @@ setup(
     entry_points={
         'console_scripts': [
             'client = object_detector_tensorflow.client:main',
+            'client_detect_and_transform = object_detector_tensorflow.detect_and_transform_client:main',
             'continuous_detection_node = object_detector_tensorflow.continuous_detection_node:main',
             'detection_node = object_detector_tensorflow.detection_node:main',
             'detect_and_transform_node = object_detector_tensorflow.detect_and_transform_node:main',
