@@ -20,7 +20,7 @@ class ContinuousDetectionNode(ObjectDetectionBaseNode):
         self.subscriber = self.create_subscription(
             Image, self.image_topic, self._subscriber_callback, keep_last)
 
-        self.create_timer(self.detect_hz, self._timed_detect_objects)
+        self.create_timer(1/self.detect_hz, self._timed_detect_objects)
 
         self.image_publisher = self.create_publisher(
             Image, f"{node_name}/result_image", 1)
@@ -31,14 +31,12 @@ class ContinuousDetectionNode(ObjectDetectionBaseNode):
     def _subscriber_callback(self, msg: Image) -> None:
         self._latest_img = msg
 
-    def _timed_detect_objects(self,
-                        msg: Image) -> None:
-        
-        detected_objects, result_image = super()._detect_objects(msg)
+    def _timed_detect_objects(self) -> None:
+        if self._latest_img:
+            detected_objects, result_image = super()._detect_objects(self._latest_img)
+            self.image_publisher.publish(result_image)
 
-        self.image_publisher.publish(result_image)
-
-        self.detections_publisher.publish(detected_objects)
+            self.detections_publisher.publish(detected_objects)
 
 
 def main(args=None):
