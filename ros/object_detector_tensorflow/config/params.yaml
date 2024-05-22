@@ -11,6 +11,7 @@ continuous_detection_node:
     saved_model_path: "~/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/saved_model"
     label_map_path: "~/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/label_map.txt"
     image_topic: "/image"  # ROS topic to listen for images
+    detect_hz: 0.1       # Detect and publish rate in Hz
     min_probability: 0.95
     max_gpu_memory_fraction: 1.0
     result_image_size: [640, 480]

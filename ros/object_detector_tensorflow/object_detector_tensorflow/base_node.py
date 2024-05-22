@@ -36,7 +36,7 @@ class ObjectDetectionBaseNode(Node):
                 ('min_probability', 0.5),
                 ('max_gpu_memory_fraction', 1.0),
                 ('result_image_size', [640, 480])
-            ])
+            ]) # type:ignore
 
         self.saved_model_path = os.path.abspath(os.path.expanduser(
             self.get_parameter("saved_model_path").get_parameter_value().string_value))
