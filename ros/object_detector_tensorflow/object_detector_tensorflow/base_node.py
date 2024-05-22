@@ -126,7 +126,6 @@ class ObjectDetectionBaseNode(Node):
 
             detected_objects = self._convert_detections_to_ros(detections,
                                                                image_header)
-
             result_image = self._convert_image_to_ros(
                 self.visualization.draw_detections(
                     image, detections, box))
@@ -169,6 +168,7 @@ class ObjectDetectionBaseNode(Node):
                 class_id=detection["class_id"],
                 class_name=detection["class_name"],
                 probability=detection["probability"],
+                mask=self.bridge.cv2_to_imgmsg(detection["mask"], encoding="passthrough"),
                 bounding_box=bounding_box,
                 center=center))
 

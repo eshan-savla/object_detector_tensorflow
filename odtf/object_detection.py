@@ -108,7 +108,7 @@ class ObjectDetection:
         for detection in detections:
             detection["class_id"] = int(detection["class_id"])
             detection["probability"] = float(detection["probability"])
-
+            detection["mask"] = np.asarray(detection["mask"],dtype=np.uint8) if detection["mask"] is not None else None
             detection["bounding_box"] = [int(detection["bounding_box"][0] * box_scale[0] + box_offset[0]),
                                          int(detection["bounding_box"][1] * box_scale[1] + box_offset[1]),
                                          int(detection["bounding_box"][2] * box_scale[0] + box_offset[0]),

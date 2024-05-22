@@ -47,11 +47,11 @@ class Client():
         except KeyboardInterrupt:
             self.node.get_logger().info("KeyboardInterrupt")
 
-        response = future.result()
+        response:DetectObjects.Response = future.result()
 
         self.node.get_logger().info(str(response.detections.detections))
 
-        return response.detections.detections, response.result_image
+        return response.detections.detections, response.result_image, response.reference_image
 
 
 def main(args=None) -> None:
@@ -84,14 +84,19 @@ def main(args=None) -> None:
                            height=960,
                            width=1280)
 
-    detections, result_image = client.detect_objects(image, roi)
+    detections, result_image, reference_image = client.detect_objects(image, roi)
 
     print(detections)
     print(result_image.width, result_image.height)
 
     image = bridge.imgmsg_to_cv2(result_image)
+    reference_image = bridge.imgmsg_to_cv2(reference_image)
+    mask = bridge.imgmsg_to_cv2(detections[0].mask)
     cv2.imshow("result", image)
-    cv2.waitKey(5000)
+    cv2.imshow("reference", reference_image)
+    cv2.imshow("mask", mask)
+    cv2.waitKey(2)
+    cv2.destroyAllWindows()
 
     #####################
 
