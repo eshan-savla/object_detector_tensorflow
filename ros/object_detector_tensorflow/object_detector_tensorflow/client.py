@@ -2,6 +2,8 @@
 
 from typing import List, Tuple
 
+from numpy import shape
+
 import rclpy
 from rclpy.node import Node
 from rclpy.task import Future
@@ -26,20 +28,12 @@ class Client():
 
         self.request = DetectObjects.Request()
 
-    def detect_objects_async(self,
-                             image: Image,
-                             roi: RegionOfInterest) -> Future:
-
-        self.request.image = image
-        self.request.roi = roi
-
+    def detect_objects_async(self) -> Future:
         return self.client.call_async(self.request)
 
-    def detect_objects(self,
-                       image: Image,
-                       roi: RegionOfInterest) -> Tuple[List[Detection], Image]:
-
-        future = self.detect_objects_async(image, roi)
+    def detect_objects(self) -> Tuple[List[Detection], Image]:
+        
+        future = self.detect_objects_async()
 
         try:
             rclpy.spin_until_future_complete(self.node, future)
@@ -72,19 +66,21 @@ def main(args=None) -> None:
     # img = np.zeros([960, 1280, 3], dtype=np.uint8)
 
     # Test image from folder
-    img = cv2.imread('/home/docker/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/test_image.png', 0) 
-    image = bridge.cv2_to_imgmsg(img)
+    # img = cv2.imread('/home/docker/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/test_image.png', 0) 
+    # image = np.random.randint(0,255,(960,1280)) # Comment this line to use the image above
+    # use_stored = False
+    # image = bridge.cv2_to_imgmsg(img)
 
-    # Image collected via camera driver, e.g. rc_visard_ros
-    # imgage = Image(height=640, width=480, encoding="rgb8")
+    # # Image collected via camera driver, e.g. rc_visard_ros
+    # # imgage = Image(height=640, width=480, encoding="rgb8")
 
-    # (Optional) Only search objects in this region of interest
-    roi = RegionOfInterest(x_offset=0,
-                           y_offset=0,
-                           height=960,
-                           width=1280)
+    # # (Optional) Only search objects in this region of interest
+    # roi = RegionOfInterest(x_offset=0,
+    #                        y_offset=0,
+    #                        height=960,
+    #                        width=1280)
 
-    detections, result_image, reference_image = client.detect_objects(image, roi)
+    detections, result_image, reference_image = client.detect_objects()
 
     print(detections)
     print(result_image.width, result_image.height)
@@ -95,8 +91,8 @@ def main(args=None) -> None:
     cv2.imshow("result", image)
     cv2.imshow("reference", reference_image)
     cv2.imshow("mask", mask)
-    cv2.waitKey(2)
-    cv2.destroyAllWindows()
+    if cv2.waitKey(0) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
 
     #####################
 
