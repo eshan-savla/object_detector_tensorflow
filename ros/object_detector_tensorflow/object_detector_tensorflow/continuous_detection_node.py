@@ -52,7 +52,22 @@ def main(args=None):
 
     rclpy.init(args=args)
 
-    ContinuousDetectionNode().run()
+    executor = MultiThreadedExecutor(num_threads=3)
+
+    node = ContinuousDetectionNode()
+    executor.add_node(node)
+
+    try:
+        node.logger.info("Started Node")
+
+        executor.spin()
+
+    except KeyboardInterrupt:
+        node.logger.info("Stopped Node")
+
+    executor.shutdown()
+    node.destroy_node()
+
 
 
 if __name__ == '__main__':
