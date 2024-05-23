@@ -48,7 +48,7 @@ class DetectionNode(ObjectDetectionBaseNode):
         self.image_publisher.publish(result_image)
 
         self.detections_publisher.publish(detected_objects)
-
+        self.latest_img = None
         return response
 
 
