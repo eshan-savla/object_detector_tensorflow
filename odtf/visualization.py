@@ -136,8 +136,9 @@ class Visualization:
             mask = cv2.resize(mask,
                               size)
 
-            mask_binary = np.zeros(mask.shape)
-            mask_binary[mask > .5] = 1
+            # mask_binary = np.zeros(mask.shape)
+            # mask_binary[mask > .5] = 1
+            mask_binary = mask
 
             mask = np.stack((mask_binary * color[0],
                              mask_binary * color[1],
