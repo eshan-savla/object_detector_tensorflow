@@ -39,7 +39,7 @@ class Visualization:
         for index, detection in enumerate(detections):
             color = (self.detection_color
                      if index == 0 else
-                     (0, 0, 255))
+                     (0, 255, 0))
 
             if detection["class_id"] == 1 or detection["class_id"] == 2 or detection["class_id"] == 6:
                 color = self.other_color
