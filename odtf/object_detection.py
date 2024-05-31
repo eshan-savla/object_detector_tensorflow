@@ -5,6 +5,7 @@ from time import time
 
 import numpy as np
 import tensorflow as tf
+from odtf.Orientation import Orientation
 
 
 class ObjectDetection:
@@ -97,7 +98,7 @@ class ObjectDetection:
                           roi[1]:roi[3]]
 
             box_offset = (roi[0], roi[1])
-
+        ori_obj = Orientation(image)
         start_time = time()
 
         detections = self._run_model(image)
@@ -121,5 +122,7 @@ class ObjectDetection:
                     detection["bounding_box"][0] + (detection["bounding_box"][2] - detection["bounding_box"][0]) / 2)
 
             detection["center"] = [float(x), float(y)]
+            ori_obj.set_mask(detection["mask"], (int(x), int(y)))
+            detection["orientation"] = ori_obj.compute_orientation()
 
         return detections
