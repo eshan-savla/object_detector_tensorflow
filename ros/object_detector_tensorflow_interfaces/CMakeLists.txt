@@ -32,6 +32,7 @@ set(DEPENDENCIES
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Detection.msg"
   "msg/Detections.msg"
+  "msg/Orientation.msg"
   "srv/DetectObjects.srv"
   "srv/DetectObjectPosition.srv"
   DEPENDENCIES ${DEPENDENCIES}
