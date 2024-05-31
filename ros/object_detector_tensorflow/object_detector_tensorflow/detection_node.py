@@ -27,10 +27,14 @@ class DetectionNode(ObjectDetectionBaseNode):
         
         self.image_lock = threading.Lock()
         self.latest_img: Image = None
+        self.depth_lock = threading.Lock()
+        self.latest_depth: Image = None
+        
 
         self.subscriber_callback_group = MutuallyExclusiveCallbackGroup()
         
-        self.image_subscriber = self.create_subscription(Image, self.image_topic, self._subscriber_callback, 1, callback_group=self.subscriber_callback_group)
+        self.image_subscriber = self.create_subscription(Image, self.image_topic, self._image_callback, 1, callback_group=self.subscriber_callback_group)
+        self.depth_subscriber = self.create_subscription(Image, self.depth_image_topic, self._depth_callback, 1, callback_group=self.subscriber_callback_group)
 
         self.image_publisher = self.create_publisher(
             Image, f"{node_name}/result_image", 1)
@@ -38,19 +42,28 @@ class DetectionNode(ObjectDetectionBaseNode):
         self.detections_publisher = self.create_publisher(
             Detections, f"{node_name}/detections", 1)
 
-    def _subscriber_callback(self, msg: Image) -> None:
+    def _image_callback(self, msg: Image) -> None:
         if self.latest_img is None:
             self.get_logger().info("Received image.")
         with self.image_lock:
             self.latest_img = msg
 
+    def _depth_callback(self, msg: Image) -> None:
+        if self.latest_depth is None:
+            self.get_logger().info("Received depth image.")
+        with self.depth_lock:
+            self.latest_depth = msg
+
     def _detect_objects(self,
                         request: DetectObjects.Request,
                     response: DetectObjects.Response) -> DetectObjects.Response:
         self.get_logger().info("Received request to detect objects.")
-        while self.latest_img is None:
-            self.get_logger().info("Waiting for image...", throttle_duration_sec=2.0)    
-        response.reference_image = self.latest_img
+        while self.latest_img is None or self.latest_depth is None:
+            if self.latest_img is None:
+                self.get_logger().info("Waiting for image...", throttle_duration_sec=2.0)    
+            if self.latest_depth is None:
+                self.get_logger().info("Waiting for depth image...", throttle_duration_sec=2.0)
+        response.reference_image = self.latest_depth
         detected_objects, result_image = super()._detect_objects(
             self.latest_img)
         response.detections = detected_objects
@@ -62,7 +75,9 @@ class DetectionNode(ObjectDetectionBaseNode):
         self.get_logger().info("Published detections and result image.")
         with self.image_lock:
             self.latest_img = None
-        self.get_logger().info("Reset latest image.")
+        with self.depth_lock:
+            self.latest_depth = None
+        self.get_logger().info("Reset latest images.")
         return response
 
 

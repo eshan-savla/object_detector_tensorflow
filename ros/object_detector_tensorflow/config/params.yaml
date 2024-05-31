@@ -3,6 +3,7 @@ detection_node:
     saved_model_path: "~/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/saved_model"  # Path to TensorFlow saved model folder
     label_map_path: "~/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/label_map.txt"  # Text file with class names (one label per line)
     image_topic: "/image"            # ROS topic to listen for images
+    depth_image_topic: "/stereo/depth"            # ROS topic to listen for depth images
     min_probability: 0.95            # Minimum probability for detections to be reported
     max_gpu_memory_fraction: 1.0    # Limits the GPU memory usage of the TensorFlow model to only a fraction (between 0 and 1)
     result_image_size: [640, 480]    # Dimensions of the result image [x,y]
@@ -12,6 +13,7 @@ continuous_detection_node:
     saved_model_path: "~/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/saved_model"
     label_map_path: "~/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/label_map.txt"
     image_topic: "/image"  # ROS topic to listen for images
+    depth_image_topic: "/stereo/depth"            # ROS topic to listen for depth images
     detect_hz: 0.1      # Detect and publish rate in Hz
     min_probability: 0.95
     max_gpu_memory_fraction: 1.0
