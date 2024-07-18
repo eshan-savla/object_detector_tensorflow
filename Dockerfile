@@ -22,7 +22,7 @@ RUN python3 -m pip install -U pip
 RUN pip3 install -U \
     setuptools \
     opencv-python
-
+RUN pip3 install --upgrade setuptools packaging
 ##############################################################################
 ##                                Create User                               ##
 ##############################################################################
