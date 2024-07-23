@@ -20,7 +20,7 @@ class Orientation:
         y_end = y + mask_size[0]
         self.mask[x:x_end, y:y_end] = mask
     
-    def compute_orientation(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def compute_orientation(self) -> Tuple[list, list, list]:
         img = self.image
         if self.mask is None:
             img = cv2.adaptiveThreshold(self.image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
