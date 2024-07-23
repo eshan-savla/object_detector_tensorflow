@@ -16,7 +16,7 @@ class Orientation:
         self.mask = np.zeros(self.image.shape, dtype=np.uint8)
         scale = (bounding_box[2]-bounding_box[0], bounding_box[3]-bounding_box[1])
         mask = cv2.resize(mask, scale)
-        self.mask[bounding_box[1]:bounding_box[3], bounding_box[0]:bounding_box[2]] = mask
+        self.mask[bounding_box[0]:bounding_box[2], bounding_box[1]:bounding_box[3]] = mask
     
     def compute_orientation(self) -> Tuple[list, list, list]:
         img = self.image
