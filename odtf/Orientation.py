@@ -14,7 +14,7 @@ class Orientation:
     
     def set_mask(self,mask: np.ndarray, bounding_box: Tuple[int, ...]):
         self.mask = np.zeros(self.image.shape, dtype=np.uint8)
-        scale = (bounding_box[2]-bounding_box[0], bounding_box[3]-bounding_box[1])
+        scale = (bounding_box[3]-bounding_box[1], bounding_box[2]-bounding_box[0])
         mask = cv2.resize(mask, scale)
         self.mask[bounding_box[0]:bounding_box[2], bounding_box[1]:bounding_box[3]] = mask
     
