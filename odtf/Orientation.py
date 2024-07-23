@@ -1,24 +1,22 @@
+from ast import List
 import cv2
 from typing import Tuple
 import numpy as np
 
 class Orientation:
-    def __init__(self, Image: np.ndarray, mask: np.ndarray = None, center: Tuple[int, int] = None):
+    def __init__(self, Image: np.ndarray, mask: np.ndarray = None, bounding_box: Tuple[int, ...] = None):
         self.orientation: tuple = None
         self.image = Image
         if self.image.shape[2] == 3:
             self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         if mask is not None:
-            self.set_mask(mask, center)
+            self.set_mask(mask, bounding_box)
     
-    def set_mask(self,mask: np.ndarray, center: Tuple[int, int] = None):
+    def set_mask(self,mask: np.ndarray, bounding_box: Tuple[int, ...]):
         self.mask = np.zeros(self.image.shape, dtype=np.uint8)
-        mask_size = mask.shape
-        x = center[1] - mask_size[1]//2
-        y = center[0] - mask_size[0]//2
-        x_end = x + mask_size[1]
-        y_end = y + mask_size[0]
-        self.mask[x:x_end, y:y_end] = mask
+        scale = (bounding_box[2]-bounding_box[0], bounding_box[3]-bounding_box[1])
+        mask = cv2.resize(mask, scale)
+        self.mask[bounding_box[1]:bounding_box[3], bounding_box[0]:bounding_box[2]] = mask
     
     def compute_orientation(self) -> Tuple[list, list, list]:
         img = self.image

@@ -123,7 +123,7 @@ class ObjectDetection:
                     detection["bounding_box"][0] + (detection["bounding_box"][2] - detection["bounding_box"][0]) / 2)
 
             detection["center"] = [float(x), float(y)]
-            ori_obj.set_mask(detection["mask"], (int(x), int(y)))
+            ori_obj.set_mask(detection["mask"], tuple(detection["bounding_box"]),(int(x), int(y)))
             detection["orientation"] = ori_obj.compute_orientation()
 
         return detections
