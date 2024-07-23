@@ -1,4 +1,5 @@
 uint32 class_id
+uint32 instance_id
 string class_name
 float32 probability
 geometry_msgs/Point center
