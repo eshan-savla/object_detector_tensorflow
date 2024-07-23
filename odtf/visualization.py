@@ -28,7 +28,6 @@ class Visualization:
 
         if roi is not None:
             rect = self._roi2rect(roi)
-
             self._draw_rect(image, roi, self.roi_color)
 
         # Use for referenceing
@@ -65,6 +64,9 @@ class Visualization:
                                         rect,
                                         color)
 
+            if detection["orientation"] is not None:
+                image = self.draw_orientation(image, detection["orientation"], detection["center"])
+                
         return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     def _roi2rect(self, roi: list):
@@ -164,4 +166,16 @@ class Visualization:
         except Exception as e:
             print(e)
 
+        return image
+    
+    def draw_orientation(self, image: np.ndarray, orientation: list, center: list):
+        mean = orientation[0]
+        eigenvectors = orientation[1]
+        eigenvalues = orientation[2]
+        center_pts = (int(center[0]), int(center[1]))
+        mean = (int(mean[0]), int(mean[1]))
+        cv2.circle(image, center_pts, 5, (0, 255, 0), 2)
+        cv2.circle(image, center_pts, 5, (0, 0, 255), 2)
+        for i in range(2):
+            cv2.line(image, mean, (int(mean[0] + eigenvectors[i*2]*eigenvalues[i]), int(mean[1] + eigenvectors[i*2+1]*eigenvalues[i])), (255, 0, 0), 2)
         return image
