@@ -1,26 +1,23 @@
+from ast import List
 import cv2
 from typing import Tuple
 import numpy as np
 
 class Orientation:
-    def __init__(self, Image: np.ndarray, mask: np.ndarray = None, center: Tuple[int, int] = None):
+    def __init__(self, Image: np.ndarray, mask: cv2.typing.MatLike = None, bounding_box: Tuple[int, ...] = None):
         self.orientation: tuple = None
         self.image = Image
         if self.image.shape[2] == 3:
             self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         if mask is not None:
-            self.set_mask(mask, center)
+            self.set_mask(mask, bounding_box)
     
-    def set_mask(self,mask: np.ndarray, center: Tuple[int, int] = None):
+    def set_mask(self,mask: cv2.typing.MatLike, bounding_box: Tuple[int, ...]):
         self.mask = np.zeros(self.image.shape, dtype=np.uint8)
-        mask_size = mask.shape
-        x = center[1] - mask_size[1]//2
-        y = center[0] - mask_size[0]//2
-        x_end = x + mask_size[1]
-        y_end = y + mask_size[0]
-        self.mask[x:x_end, y:y_end] = mask
+        self.scale = (bounding_box[3]-bounding_box[1], bounding_box[2]-bounding_box[0])
+        self.mask[bounding_box[0]:bounding_box[2], bounding_box[1]:bounding_box[3]] = mask
     
-    def compute_orientation(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def compute_orientation(self) -> Tuple[list, list, list]:
         img = self.image
         if self.mask is None:
             img = cv2.adaptiveThreshold(self.image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
@@ -38,6 +35,8 @@ class Orientation:
         
         mean = np.empty((0))
         mean, eigenvectors, eigenvalues = cv2.PCACompute2(data_pts, mean)
+        # if self.scale is not None:
+        #     eigenvalues = np.asarray([eigenvalues[0,0] / self.scale[0], eigenvalues[1,0] / self.scale[1]] )
         self.orientation = (mean.astype(np.float32).flatten().tolist(), eigenvectors.astype(np.float32).flatten().tolist(), eigenvalues.astype(np.float32).flatten().tolist())
         return self.orientation
     

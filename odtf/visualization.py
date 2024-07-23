@@ -28,7 +28,6 @@ class Visualization:
 
         if roi is not None:
             rect = self._roi2rect(roi)
-
             self._draw_rect(image, roi, self.roi_color)
 
         # Use for referenceing
@@ -65,6 +64,9 @@ class Visualization:
                                         rect,
                                         color)
 
+            if detection["orientation"] is not None:
+                image = self.draw_orientation(image, detection["orientation"], detection["center"])
+                
         return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     def _roi2rect(self, roi: list):
@@ -130,11 +132,11 @@ class Visualization:
                    alpha=.2):
 
         try:
-            size = (rect[2][0] - rect[0][0],
-                    rect[2][1] - rect[0][1])
+            # size = (rect[2][0] - rect[0][0],
+            #         rect[2][1] - rect[0][1])
 
-            mask = cv2.resize(mask,
-                              size)
+            # mask = cv2.resize(mask,
+            #                   size)
 
             # mask_binary = np.zeros(mask.shape)
             # mask_binary[mask > .5] = 1
@@ -145,14 +147,15 @@ class Visualization:
                              mask_binary * color[2]),
                             axis=2)
 
-            image_mask = np.zeros(image.shape,
-                                  dtype=np.uint8)
+            # image_mask = np.zeros(image.shape,
+            #                       dtype=np.uint8)
 
-            position = (rect[0][0],
-                        rect[0][1])
+            # position = (rect[0][0],
+            #             rect[0][1])
 
-            image_mask[position[1]: position[1] + size[1],
-                       position[0]: position[0] + size[0]] = mask
+            # image_mask[position[1]: position[1] + size[1],
+                    #    position[0]: position[0] + size[0]] = mask
+            image_mask = mask
 
             cv2.addWeighted(image_mask,
                             alpha,
@@ -164,4 +167,16 @@ class Visualization:
         except Exception as e:
             print(e)
 
+        return image
+    
+    def draw_orientation(self, image: np.ndarray, orientation: list, center: list):
+        mean = orientation[0]
+        eigenvectors = orientation[1]
+        eigenvalues = orientation[2]
+        center_pts = (int(center[0]), int(center[1]))
+        mean = (int(mean[0]), int(mean[1]))
+        cv2.circle(image, center_pts, 5, (0, 255, 0), 2)
+        cv2.circle(image, center_pts, 5, (0, 0, 255), 2)
+        for i in range(2):
+            cv2.line(image, mean, (int(mean[0] + eigenvectors[i*2]*eigenvalues[i]*0.01), int(mean[1] + eigenvectors[i*2+1]*eigenvalues[i]*0.01)), (255, 0, 0), 2)
         return image

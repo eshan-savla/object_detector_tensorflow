@@ -88,6 +88,7 @@ def main(args=None) -> None:
     image = bridge.imgmsg_to_cv2(result_image)
     reference_image = bridge.imgmsg_to_cv2(reference_image)
     mask = bridge.imgmsg_to_cv2(detections[0].mask)
+    mask = mask * 255
     cv2.imshow("result", image)
     cv2.imshow("reference", reference_image)
     cv2.imshow("mask", mask)
