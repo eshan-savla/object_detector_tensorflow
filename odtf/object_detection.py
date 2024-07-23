@@ -126,7 +126,7 @@ class ObjectDetection:
                 mask = cv2.resize(mask, scale)
             detection["center"] = [float(x), float(y)]
             ori_obj.set_mask(mask, tuple(detection["bounding_box"]))
-            full_mask = np.zeros(image.shape, dtype=np.uint8)
+            full_mask = np.zeros(image.shape[:2], dtype=np.uint8)
             full_mask[detection["bounding_box"][0]:detection["bounding_box"][2], detection["bounding_box"][1]:detection["bounding_box"][3]] = mask
             detection["mask"] = full_mask
             detection["orientation"] = ori_obj.compute_orientation()

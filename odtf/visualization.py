@@ -178,5 +178,5 @@ class Visualization:
         cv2.circle(image, center_pts, 5, (0, 255, 0), 2)
         cv2.circle(image, center_pts, 5, (0, 0, 255), 2)
         for i in range(2):
-            cv2.line(image, mean, (int(mean[0] + eigenvectors[i*2]*eigenvalues[i]), int(mean[1] + eigenvectors[i*2+1]*eigenvalues[i])), (255, 0, 0), 2)
+            cv2.line(image, mean, (int(mean[0] + eigenvectors[i*2]*eigenvalues[i]*0.01), int(mean[1] + eigenvectors[i*2+1]*eigenvalues[i]*0.01)), (255, 0, 0), 2)
         return image
