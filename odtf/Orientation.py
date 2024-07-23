@@ -4,7 +4,7 @@ from typing import Tuple
 import numpy as np
 
 class Orientation:
-    def __init__(self, Image: np.ndarray, mask: np.ndarray = None, bounding_box: Tuple[int, ...] = None):
+    def __init__(self, Image: np.ndarray, mask: cv2.typing.MatLike = None, bounding_box: Tuple[int, ...] = None):
         self.orientation: tuple = None
         self.image = Image
         if self.image.shape[2] == 3:
@@ -12,7 +12,7 @@ class Orientation:
         if mask is not None:
             self.set_mask(mask, bounding_box)
     
-    def set_mask(self,mask: np.ndarray, bounding_box: Tuple[int, ...]):
+    def set_mask(self,mask: cv2.typing.MatLike = None, bounding_box: Tuple[int, ...]):
         self.mask = np.zeros(self.image.shape, dtype=np.uint8)
         self.scale = (bounding_box[3]-bounding_box[1], bounding_box[2]-bounding_box[0])
         self.mask[bounding_box[0]:bounding_box[2], bounding_box[1]:bounding_box[3]] = mask

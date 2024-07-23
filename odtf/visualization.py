@@ -132,8 +132,8 @@ class Visualization:
                    alpha=.2):
 
         try:
-            size = (rect[2][0] - rect[0][0],
-                    rect[2][1] - rect[0][1])
+            # size = (rect[2][0] - rect[0][0],
+            #         rect[2][1] - rect[0][1])
 
             # mask = cv2.resize(mask,
             #                   size)
@@ -147,14 +147,15 @@ class Visualization:
                              mask_binary * color[2]),
                             axis=2)
 
-            image_mask = np.zeros(image.shape,
-                                  dtype=np.uint8)
+            # image_mask = np.zeros(image.shape,
+            #                       dtype=np.uint8)
 
-            position = (rect[0][0],
-                        rect[0][1])
+            # position = (rect[0][0],
+            #             rect[0][1])
 
-            image_mask[position[1]: position[1] + size[1],
-                       position[0]: position[0] + size[0]] = mask
+            # image_mask[position[1]: position[1] + size[1],
+                    #    position[0]: position[0] + size[0]] = mask
+            image_mask = mask
 
             cv2.addWeighted(image_mask,
                             alpha,
