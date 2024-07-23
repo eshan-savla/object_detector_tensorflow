@@ -135,8 +135,8 @@ class Visualization:
             size = (rect[2][0] - rect[0][0],
                     rect[2][1] - rect[0][1])
 
-            mask = cv2.resize(mask,
-                              size)
+            # mask = cv2.resize(mask,
+            #                   size)
 
             # mask_binary = np.zeros(mask.shape)
             # mask_binary[mask > .5] = 1

@@ -2,7 +2,7 @@
 
 import os
 from time import time
-
+import cv2
 import numpy as np
 import tensorflow as tf
 from odtf.Orientation import Orientation
@@ -121,7 +121,9 @@ class ObjectDetection:
             #         y / detection["mask"].shape[0] * box_scale[0] + box_offset[0])
             x, y = (detection["bounding_box"][1] + (detection["bounding_box"][3] - detection["bounding_box"][1]) / 2,
                     detection["bounding_box"][0] + (detection["bounding_box"][2] - detection["bounding_box"][0]) / 2)
-
+            scale = (detection["bounding_box"][3] - detection["bounding_box"][1], detection["bounding_box"][2] - detection["bounding_box"][0])
+            if detection["mask"] is not None:
+                detection["mask"] = cv2.resize(detection["mask"], scale)
             detection["center"] = [float(x), float(y)]
             ori_obj.set_mask(detection["mask"], tuple(detection["bounding_box"]))
             detection["orientation"] = ori_obj.compute_orientation()

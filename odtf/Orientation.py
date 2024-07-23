@@ -14,8 +14,7 @@ class Orientation:
     
     def set_mask(self,mask: np.ndarray, bounding_box: Tuple[int, ...]):
         self.mask = np.zeros(self.image.shape, dtype=np.uint8)
-        scale = (bounding_box[3]-bounding_box[1], bounding_box[2]-bounding_box[0])
-        mask = cv2.resize(mask, scale)
+        self.scale = (bounding_box[3]-bounding_box[1], bounding_box[2]-bounding_box[0])
         self.mask[bounding_box[0]:bounding_box[2], bounding_box[1]:bounding_box[3]] = mask
     
     def compute_orientation(self) -> Tuple[list, list, list]:
@@ -36,6 +35,8 @@ class Orientation:
         
         mean = np.empty((0))
         mean, eigenvectors, eigenvalues = cv2.PCACompute2(data_pts, mean)
+        if self.scale is not None:
+            eigenvalues = np.asarray([eigenvalues[0,0] / self.scale[0], eigenvalues[1,0] / self.scale[1]] )
         self.orientation = (mean.astype(np.float32).flatten().tolist(), eigenvectors.astype(np.float32).flatten().tolist(), eigenvalues.astype(np.float32).flatten().tolist())
         return self.orientation
     
