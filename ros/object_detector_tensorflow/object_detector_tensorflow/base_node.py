@@ -16,7 +16,8 @@ from cv_bridge import CvBridge, CvBridgeError
 from odtf.object_detection import ObjectDetection
 from odtf.visualization import Visualization
 from object_detector_tensorflow.diagnostics import Diagnostics
-from object_detector_tensorflow_interfaces.msg import Orientation, Detection, Detections
+from object_detector_tensorflow_interfaces.msg import Detection, Detections
+from geometry_msgs.msg import Quaternion
 
 
 class ObjectDetectionBaseNode(Node):
@@ -171,7 +172,10 @@ class ObjectDetectionBaseNode(Node):
                 mask=self.bridge.cv2_to_imgmsg(detection["mask"], encoding="passthrough"),
                 bounding_box=bounding_box,
                 center=center,
-                orientation = Orientation(mean = detection["orientation"][0], eigenvectors = detection["orientation"][1], eigenvalues = detection["orientation"][2])))
+                orientation = Quaternion(x=detection["orientation"][0],
+                                         y=detection["orientation"][1],
+                                         z=detection["orientation"][2],
+                                         w=detection["orientation"][3])))
 
         detected_objects.image_header = image_header
         detected_objects.header.stamp = self.get_clock().now().to_msg()

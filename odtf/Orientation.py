@@ -2,16 +2,18 @@ from ast import List
 import cv2
 from typing import Tuple
 import numpy as np
+from sympy import Quaternion
 
 class Orientation:
-    def __init__(self, Image: np.ndarray, mask: cv2.typing.MatLike = None, bounding_box: Tuple[int, ...] = None):
+    def __init__(self, Image: np.ndarray, mask: cv2.typing.MatLike | None = None, bounding_box: Tuple[int, ...] | None = None):
         self.orientation: tuple = None
+        self.quaternion: tuple = None
         self.image = Image
         if self.image.shape[2] == 3:
             self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-        if mask is not None:
+        if mask is not None and bounding_box is not None:
             self.set_mask(mask, bounding_box)
-    
+     
     def set_mask(self,mask: cv2.typing.MatLike, bounding_box: Tuple[int, ...]):
         self.mask = np.zeros(self.image.shape, dtype=np.uint8)
         self.scale = (bounding_box[3]-bounding_box[1], bounding_box[2]-bounding_box[0])
@@ -35,10 +37,16 @@ class Orientation:
         
         mean = np.empty((0))
         mean, eigenvectors, eigenvalues = cv2.PCACompute2(data_pts, mean)
+        self.quaternion = self.to_quaternion(eigenvectors)
         # if self.scale is not None:
         #     eigenvalues = np.asarray([eigenvalues[0,0] / self.scale[0], eigenvalues[1,0] / self.scale[1]] )
         self.orientation = (mean.astype(np.float32).flatten().tolist(), eigenvectors.astype(np.float32).flatten().tolist(), eigenvalues.astype(np.float32).flatten().tolist())
         return self.orientation
+    
+    @staticmethod
+    def to_quaternion(eigenvectors) -> Tuple[float, float, float, float]:
+        angle = np.arctan2(eigenvectors[0,1], -1*eigenvectors[0,0])
+        return (0.0, 0.0, np.sin(angle/2), np.cos(angle/2))
     
 
         
