@@ -130,7 +130,8 @@ class ObjectDetection:
             full_mask = np.zeros(image.shape[:2], dtype=np.uint8)
             full_mask[detection["bounding_box"][0]:detection["bounding_box"][2], detection["bounding_box"][1]:detection["bounding_box"][3]] = mask
             detection["mask"] = full_mask
-            detection["orientation"] = ori_obj.compute_orientation()
+            detection["eigens"] = ori_obj.compute_orientation()
+            detection["orientation"] = ori_obj.quaternion
             instance_id += 1
 
 

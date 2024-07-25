@@ -5,4 +5,4 @@ float32 probability
 geometry_msgs/Point center
 sensor_msgs/RegionOfInterest bounding_box
 sensor_msgs/Image mask
-Orientation orientation
+geometry_msgs/Quaternion orientation
