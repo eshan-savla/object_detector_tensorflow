@@ -106,9 +106,10 @@ class ObjectDetection:
 
         if self._logger is not None:
             self._logger.info(f"Inference took {time() - start_time:.3f} s")
-
+        instance_id = 0
         for detection in detections:
             detection["class_id"] = int(detection["class_id"])
+            detection["instance_id"] = instance_id
             detection["probability"] = float(detection["probability"])
             mask = np.asarray(detection["mask"] > threshold,dtype=np.uint8) if detection["mask"] is not None else None
             detection["bounding_box"] = [int(detection["bounding_box"][0] * box_scale[0] + box_offset[0]),
@@ -130,6 +131,7 @@ class ObjectDetection:
             full_mask[detection["bounding_box"][0]:detection["bounding_box"][2], detection["bounding_box"][1]:detection["bounding_box"][3]] = mask
             detection["mask"] = full_mask
             detection["orientation"] = ori_obj.compute_orientation()
+            instance_id += 1
 
 
         return detections
