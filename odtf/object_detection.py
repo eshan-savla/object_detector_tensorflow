@@ -2,7 +2,7 @@
 
 import os
 from time import time
-
+import cv2
 import numpy as np
 import tensorflow as tf
 from odtf.Orientation import Orientation
@@ -106,11 +106,12 @@ class ObjectDetection:
 
         if self._logger is not None:
             self._logger.info(f"Inference took {time() - start_time:.3f} s")
-
+        instance_id = 0
         for detection in detections:
             detection["class_id"] = int(detection["class_id"])
+            detection["instance_id"] = instance_id
             detection["probability"] = float(detection["probability"])
-            detection["mask"] = np.asarray(detection["mask"] > threshold,dtype=np.uint8) if detection["mask"] is not None else None
+            mask = np.asarray(detection["mask"] > threshold,dtype=np.uint8) if detection["mask"] is not None else None
             detection["bounding_box"] = [int(detection["bounding_box"][0] * box_scale[0] + box_offset[0]),
                                          int(detection["bounding_box"][1] * box_scale[1] + box_offset[1]),
                                          int(detection["bounding_box"][2] * box_scale[0] + box_offset[0]),
@@ -121,9 +122,16 @@ class ObjectDetection:
             #         y / detection["mask"].shape[0] * box_scale[0] + box_offset[0])
             x, y = (detection["bounding_box"][1] + (detection["bounding_box"][3] - detection["bounding_box"][1]) / 2,
                     detection["bounding_box"][0] + (detection["bounding_box"][2] - detection["bounding_box"][0]) / 2)
-
+            scale = (detection["bounding_box"][3] - detection["bounding_box"][1], detection["bounding_box"][2] - detection["bounding_box"][0])
+            if mask is not None:
+                mask = cv2.resize(mask, scale)
             detection["center"] = [float(x), float(y)]
-            ori_obj.set_mask(detection["mask"], (int(x), int(y)))
+            ori_obj.set_mask(mask, tuple(detection["bounding_box"]))
+            full_mask = np.zeros(image.shape[:2], dtype=np.uint8)
+            full_mask[detection["bounding_box"][0]:detection["bounding_box"][2], detection["bounding_box"][1]:detection["bounding_box"][3]] = mask
+            detection["mask"] = full_mask
             detection["orientation"] = ori_obj.compute_orientation()
+            instance_id += 1
+
 
         return detections
