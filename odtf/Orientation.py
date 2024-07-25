@@ -46,7 +46,7 @@ class Orientation:
     @staticmethod
     def to_quaternion(eigenvectors) -> Tuple[float, float, float, float]:
         angle = np.arctan2(eigenvectors[0,1], -1*eigenvectors[0,0])
-        return (0, 0, np.sin(angle/2), np.cos(angle/2))
+        return (0.0, 0.0, np.sin(angle/2), np.cos(angle/2))
     
 
         

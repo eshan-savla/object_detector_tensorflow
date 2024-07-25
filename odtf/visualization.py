@@ -64,8 +64,8 @@ class Visualization:
                                         rect,
                                         color)
 
-            if detection["eigen"] is not None:
-                image = self.draw_orientation(image, detection["eigen"], detection["center"])
+            if detection["eigens"] is not None:
+                image = self.draw_orientation(image, detection["eigens"], detection["center"])
                 
         return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
