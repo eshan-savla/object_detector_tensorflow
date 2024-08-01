@@ -5,6 +5,7 @@ from typing import Tuple
 
 import numpy as np
 import cv2
+# from typepy import Bool
 
 import rclpy
 from rclpy.node import Node
@@ -82,7 +83,8 @@ class ObjectDetectionBaseNode(Node):
 
     def _detect_objects(self,
                         image: Image,
-                        roi: RegionOfInterest = None) -> Tuple[Detections, Image]:
+                        roi: RegionOfInterest = None, 
+                        crop_result_img: bool = False) -> Tuple[Detections, Image]:
 
         self.logger.info("Detecting objects")
 
@@ -127,6 +129,7 @@ class ObjectDetectionBaseNode(Node):
 
             detected_objects = self._convert_detections_to_ros(detections,
                                                                image_header)
+            box = box if crop_result_img else None
             result_image = self._convert_image_to_ros(
                 self.visualization.draw_detections(
                     image, detections, box))

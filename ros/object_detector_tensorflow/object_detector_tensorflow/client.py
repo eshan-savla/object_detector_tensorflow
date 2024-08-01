@@ -27,6 +27,7 @@ class Client():
             self.node.get_logger().info('DetectObjects service not available, waiting again...')
 
         self.request = DetectObjects.Request()
+        self.request.roi = RegionOfInterest(x_offset=0, y_offset=307, width=1126, height=548)
 
     def detect_objects_async(self) -> Future:
         return self.client.call_async(self.request)

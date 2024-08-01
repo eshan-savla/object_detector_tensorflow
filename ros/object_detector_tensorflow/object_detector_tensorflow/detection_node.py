@@ -64,7 +64,7 @@ class DetectionNode(ObjectDetectionBaseNode):
                 self.get_logger().info("Waiting for depth image...", throttle_duration_sec=2.0)
         response.reference_image = self.latest_depth
         detected_objects, result_image = super()._detect_objects(
-            self.latest_img)
+            self.latest_img, request.roi)
         response.detections = detected_objects
         response.result_image = result_image
 
