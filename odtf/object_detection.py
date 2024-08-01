@@ -95,14 +95,16 @@ class ObjectDetection:
         box_offset = (0, 0)
 
         if roi is not None:
-            image = image[roi[0]:roi[2],
+            resized_image = image[roi[0]:roi[2],
                           roi[1]:roi[3]]
 
             box_offset = (roi[0], roi[1])
+            box_scale = resized_image.shape[:2]
+        # box_scale_roi = image.shape[:2]
         ori_obj = Orientation(image)
         start_time = time()
 
-        detections = self._run_model(image)
+        detections = self._run_model(resized_image)
 
         if self._logger is not None:
             self._logger.info(f"Inference took {time() - start_time:.3f} s")
@@ -123,24 +125,14 @@ class ObjectDetection:
             x, y = (detection["bounding_box"][1] + (detection["bounding_box"][3] - detection["bounding_box"][1]) / 2,
                     detection["bounding_box"][0] + (detection["bounding_box"][2] - detection["bounding_box"][0]) / 2)
             scale = (detection["bounding_box"][3] - detection["bounding_box"][1], detection["bounding_box"][2] - detection["bounding_box"][0])
-            if self._logger is not None:
-                self._logger.info(f"Scale: {scale}")
-                self._logger.info(f"Center: {x}, {y}")
-                self._logger.info(f"Mask shape: {mask.shape if mask is not None else None}")
-                self._logger.info(f"Bounding box: {detection['bounding_box']}")
-
             if mask is not None:
                 mask = cv2.resize(mask, scale)
                 if self._logger is not None:
                     self._logger.info(f"Resized mask shape: {mask.shape}")
             detection["center"] = [float(x), float(y)]
             ori_obj.set_mask(mask, tuple(detection["bounding_box"]))
-            if self._logger is not None:
-                self._logger.info(f"Mask set")
             full_mask = np.zeros(image.shape[:2], dtype=np.uint8)
             full_mask[detection["bounding_box"][0]:detection["bounding_box"][2], detection["bounding_box"][1]:detection["bounding_box"][3]] = mask
-            if self._logger is not None:
-                self._logger.info(f"Full mask shape: {full_mask.shape}")
             detection["mask"] = full_mask
             detection["eigens"] = ori_obj.compute_orientation()
             if self._logger is not None:
