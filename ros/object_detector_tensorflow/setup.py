@@ -29,6 +29,7 @@ setup(
             'continuous_detection_node = object_detector_tensorflow.continuous_detection_node:main',
             'detection_node = object_detector_tensorflow.detection_node:main',
             'detect_and_transform_node = object_detector_tensorflow.detect_and_transform_node:main',
+            'dummy_publisher = object_detector_tensorflow.DummyPublisher:main',
         ],
     },
 )
