@@ -123,6 +123,12 @@ class ObjectDetection:
             x, y = (detection["bounding_box"][1] + (detection["bounding_box"][3] - detection["bounding_box"][1]) / 2,
                     detection["bounding_box"][0] + (detection["bounding_box"][2] - detection["bounding_box"][0]) / 2)
             scale = (detection["bounding_box"][3] - detection["bounding_box"][1], detection["bounding_box"][2] - detection["bounding_box"][0])
+            if self._logger is not None:
+                self._logger.info(f"Scale: {scale}")
+                self._logger.info(f"Center: {x}, {y}")
+                self._logger.info(f"Mask shape: {mask.shape if mask is not None else None}")
+                self._logger.info(f"Bounding box: {detection['bounding_box']}")
+
             if mask is not None:
                 mask = cv2.resize(mask, scale)
             detection["center"] = [float(x), float(y)]
