@@ -131,12 +131,20 @@ class ObjectDetection:
 
             if mask is not None:
                 mask = cv2.resize(mask, scale)
+                if self._logger is not None:
+                    self._logger.info(f"Resized mask shape: {mask.shape}")
             detection["center"] = [float(x), float(y)]
             ori_obj.set_mask(mask, tuple(detection["bounding_box"]))
+            if self._logger is not None:
+                self._logger.info(f"Mask set")
             full_mask = np.zeros(image.shape[:2], dtype=np.uint8)
             full_mask[detection["bounding_box"][0]:detection["bounding_box"][2], detection["bounding_box"][1]:detection["bounding_box"][3]] = mask
+            if self._logger is not None:
+                self._logger.info(f"Full mask shape: {full_mask.shape}")
             detection["mask"] = full_mask
             detection["eigens"] = ori_obj.compute_orientation()
+            if self._logger is not None:
+                self._logger.info(f"Orientation computed")
             detection["orientation"] = ori_obj.quaternion
             instance_id += 1
 
