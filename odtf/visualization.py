@@ -201,23 +201,42 @@ class Visualization:
         # Draw the rotated rectangle
         cv2.polylines(image, [box], isClosed=True, color=(255, 0, 0), thickness=2)
                         
-        # # Calculate the longer side of the box
-        # side1 = np.linalg.norm(box[0] - box[1])
-        # side2 = np.linalg.norm(box[1] - box[2])
-        # longer_side = max(side1, side2)
-                        
-        orientation = orientation[2] # angle
-        print(f'Orientation : {orientation}')        
+        # Calculate the longer side of the box
+        side1 = np.linalg.norm(box[0] - box[1])
+        side2 = np.linalg.norm(box[1] - box[2])
+        longer_side = max(side1, side2)
+
+        # Calculate the vector in the direction of the longer side
+        vector = (box[1] - box[0]) if side1 == longer_side else (box[2] - box[1])
+
+        vector = vector / np.linalg.norm(vector)
+
+        # Calculate the center point of the minAreaRect
         center_pts = (int(center[0]), int(center[1]))
+
+        # Calculate the end point of the vector
+        end_point = (int(center[0] + longer_side * 0.6 * vector[0]),
+                    int(center[1] + longer_side * 0.6 * vector[1]))
+
+        # Draw rotated rectangle and longer vector
+        cv2.polylines(image, [box], isClosed=True, color=(255, 140, 0), thickness=3)
+        cv2.arrowedLine(image, center_pts, end_point, (255, 0, 0), 2)
+        
+        # Calculate the perpendicular vector (90 degrees counterclockwise)
+        perp_vector = np.array([-vector[1], vector[0]])
+        # Calculate the end point of the perpendicular vector
+        perp_end_point = (int(center[0] + longer_side * 0.3 * perp_vector[0]),
+                          int(center[1] + longer_side * 0.3 * perp_vector[1]))
+
+        # Draw the perpendicular vector
+        cv2.arrowedLine(image, center_pts, perp_end_point, (0, 255, 0), 2)
+        # Draw the center point
         cv2.circle(image, center_pts, 5, (0, 255, 0), 2)
         cv2.circle(image, center_pts, 5, (0, 0, 255), 2)
-        length = 100
-        
-        
-        
-        end_point = (int(center[0] + length * np.cos(orientation)),
-                     int(center[1] + length * np.sin(orientation)))
-        cv2.line(image, center_pts, end_point, (255, 0, 0), 2)
+
+        # Print the orientation
+        orientation = orientation[2]  # angle
+        print(f'Orientation : {orientation}')
         
         
         
