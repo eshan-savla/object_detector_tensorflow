@@ -28,24 +28,50 @@ class Orientation:
         if len(contours) == 0:
             return None
         c = max(contours, key=cv2.contourArea)
-        sz = len(c)
-        data_pts = np.empty((sz, 2), dtype=np.float64)
-        for i in range(data_pts.shape[0]):
-            data_pts[i, 0] = c[i,0,0]
-            data_pts[i, 1] = c[i,0,1]
+        rect = cv2.minAreaRect(c)
+        box = cv2.boxPoints(rect)
+        box = np.int0(box)
         
-        mean = np.empty((0))
-        mean, eigenvectors, eigenvalues = cv2.PCACompute2(data_pts, mean)
-        self.quaternion = self.to_quaternion(eigenvectors)
-        self.orientation = (mean.astype(np.float32).flatten().tolist(), eigenvectors.astype(np.float32).flatten().tolist(), eigenvalues.astype(np.float32).flatten().tolist())
+        center, size, angle = rect
+        
+        angle_rad = np.deg2rad(angle if angle < 0 else angle - 180)
+       
+        self.quaternion = self.to_quaternion(angle_rad)
+        self.orientation = (list(center), list(size), [angle_rad])
+        
         return self.orientation
     
     @staticmethod
-    def to_quaternion(eigenvectors) -> Tuple[float, float, float, float]:
-        angle = np.arctan2(-eigenvectors[0,1], eigenvectors[0,0])
-        if angle > 0:
-            angle -= np.pi
-        return (0.0, 0.0, np.sin(angle/2), np.cos(angle/2))
+    def to_quaternion(angle_rad: float) -> Tuple[float, float, float, float]:
+        quaternion = (0.0, 0.0, np.sin(angle_rad / 2), np.cos(angle_rad / 2))   
+        return quaternion    
+    
+    # def compute_orientation(self) -> Tuple[list, list, list]:
+    #     img = self.image
+    #     if self.mask is None:
+    #         img = cv2.adaptiveThreshold(self.image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+    #     else:
+    #         img = cv2.bitwise_and(self.image, self.image, mask=self.mask)
+    #     contours, _ = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    #     if len(contours) == 0:
+    #         return None
+    #     c = max(contours, key=cv2.contourArea)
+    #     sz = len(c)
+    #     data_pts = np.empty((sz, 2), dtype=np.float64)
+    #     for i in range(data_pts.shape[0]):
+    #         data_pts[i, 0] = c[i,0,0]
+    #         data_pts[i, 1] = c[i,0,1]
+        
+    #     mean = np.empty((0))
+    #     mean, eigenvectors, eigenvalues = cv2.PCACompute2(data_pts, mean)
+    #     self.quaternion = self.to_quaternion(eigenvectors)
+    #     self.orientation = (mean.astype(np.float32).flatten().tolist(), eigenvectors.astype(np.float32).flatten().tolist(), eigenvalues.astype(np.float32).flatten().tolist())
+    #     return self.orientation
+    
+    # @staticmethod
+    # def to_quaternion(eigenvectors) -> Tuple[float, float, float, float]:
+    #     angle = np.arctan2(eigenvectors[0,1], eigenvectors[0,0])
+    #     return (0.0, 0.0, np.sin(angle/2), np.cos(angle/2))
     
 
         

@@ -65,7 +65,9 @@ class Visualization:
                                         color)
 
             if detection["eigens"] is not None:
-                image = self.draw_orientation(image, detection["eigens"], detection["center"])
+                image = self.draw_orientation_v2(image, detection["eigens"])#detection["center"])
+                
+                # image = self.draw_minRectArea(image, dete)
                 
         return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
@@ -179,4 +181,53 @@ class Visualization:
         cv2.circle(image, center_pts, 5, (0, 0, 255), 2)
         for i in range(2):
             cv2.line(image, mean, (int(mean[0] + eigenvectors[i*2]*eigenvalues[i]*0.01), int(mean[1] + eigenvectors[i*2+1]*eigenvalues[i]*0.01)), (255, 0, 0), 2)
+        return image
+    
+    
+    def draw_orientation_v2(self, image: np.ndarray, orientation: list):
+        print('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx')
+        center = orientation[0]     
+        print(f'Center : {center}')
+        size = orientation[1]
+        angle_rad = orientation[2][0] # extract the angle in radians
+        
+        angle = np.rad2deg(angle_rad)
+        
+        # Reconstruct rotated rectangle 
+        rect = (tuple(center), tuple(size), angle)
+        box = cv2.boxPoints(rect)
+        box = np.int0(box)    
+        
+        # Draw the rotated rectangle
+        cv2.polylines(image, [box], isClosed=True, color=(255, 0, 0), thickness=2)
+                        
+        # # Calculate the longer side of the box
+        # side1 = np.linalg.norm(box[0] - box[1])
+        # side2 = np.linalg.norm(box[1] - box[2])
+        # longer_side = max(side1, side2)
+                        
+        orientation = orientation[2] # angle
+        print(f'Orientation : {orientation}')        
+        center_pts = (int(center[0]), int(center[1]))
+        cv2.circle(image, center_pts, 5, (0, 255, 0), 2)
+        cv2.circle(image, center_pts, 5, (0, 0, 255), 2)
+        length = 100
+        
+        
+        
+        end_point = (int(center[0] + length * np.cos(orientation)),
+                     int(center[1] + length * np.sin(orientation)))
+        cv2.line(image, center_pts, end_point, (255, 0, 0), 2)
+        
+        
+        
+        # 'Backlog'
+        # rect = cv2.minAreaRect(c)
+        # box = cv2.boxPoints(rect)
+        # box = np.int0(box)
+        # 
+        # center, size, angle = rect
+        # self.orientation = (list(center), list(size), [angle_rad])
+        
+
         return image
