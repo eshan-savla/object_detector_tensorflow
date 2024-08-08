@@ -23,7 +23,7 @@ else
         -e DISPLAY=$DISPLAY \
         --env-file .env \
         --rm \
-        --name odtf \   
+        --name odtf \
         --gpus all \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
         -v $PWD/:/home/docker/ros2_ws/src/object_detector_tensorflow/ \
