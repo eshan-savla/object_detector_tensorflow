@@ -179,6 +179,10 @@ class ObjectDetectionBaseNode(Node):
                                          y=detection["orientation"][1],
                                          z=detection["orientation"][2],
                                          w=detection["orientation"][3])))
+        
+            self.get_logger().info(f"Quaternion for Orientation: {detection['orientation']} for Class Name: {detection['class_name']}")
+            angle = np.rad2deg(np.arccos(detection['orientation'][3]) * 2)
+            self.get_logger().info(f"Angle in Degree: {angle}")
 
         detected_objects.image_header = image_header
         detected_objects.header.stamp = self.get_clock().now().to_msg()
