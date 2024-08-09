@@ -62,6 +62,9 @@ class Orientation:
         # if Rotation around z >= pi or z <= pi, then the quaternion is mirrored
         if deg >= np.pi/2 and deg <= 3*np.pi/2:
             deg = deg - Rotation.from_euler('z', np.pi).as_euler('zyx')[0]
+        elif deg <= -np.pi/2 and deg >= -3*np.pi/2:
+            deg = deg + np.pi
+        
         quat = Rotation.from_euler('z', deg)
         
         quaternion = quat.as_quat()
