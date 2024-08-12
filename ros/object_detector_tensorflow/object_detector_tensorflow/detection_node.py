@@ -28,13 +28,16 @@ class DetectionNode(ObjectDetectionBaseNode):
         self.latest_img: Image = None
         self.depth_lock = threading.Lock()
         self.latest_depth: Image = None
-        
+        self.detections_lock = threading.Lock()
+        self.detections:Detections = None
+        self.result_image_lock = threading.Lock()
+        self.result_image: Image = None
 
         self.subscriber_callback_group = MutuallyExclusiveCallbackGroup()
         
         self.image_subscriber = self.create_subscription(Image, self.image_topic, self._image_callback, 1, callback_group=self.subscriber_callback_group)
         self.depth_subscriber = self.create_subscription(Image, self.depth_image_topic, self._depth_callback, 1, callback_group=self.subscriber_callback_group)
-
+        self.detections_publisher_timer = self.create_timer(1.0, self._publish_detections, callback_group=self.service_callback_group)
         self.image_publisher = self.create_publisher(
             Image, f"{node_name}/result_image", 1)
 
@@ -52,7 +55,15 @@ class DetectionNode(ObjectDetectionBaseNode):
             self.get_logger().info("Received depth image.")
         with self.depth_lock:
             self.latest_depth = msg
-
+    def _publish_detections(self) -> None:
+        with self.detections_lock:
+            if self.detections is not None:
+                self.detections_publisher.publish(self.detections)
+                self.get_logger().info("Published detections.")
+        with self.result_image_lock:
+            if self.result_image is not None:
+                self.image_publisher.publish(self.result_image)
+                self.get_logger().info("Published result image.")
     def _detect_objects(self,
                         request: DetectObjects.Request,
                     response: DetectObjects.Response) -> DetectObjects.Response:
@@ -67,10 +78,13 @@ class DetectionNode(ObjectDetectionBaseNode):
             self.latest_img, request.roi)
         response.detections = detected_objects
         response.result_image = result_image
-
+        with self.result_image_lock:
+            self.result_image = result_image
         self.image_publisher.publish(result_image)
 
         self.detections_publisher.publish(detected_objects)
+        with self.detections_lock:
+            self.detections = detected_objects
         self.get_logger().info("Published detections and result image.")
         with self.image_lock:
             self.latest_img = None
