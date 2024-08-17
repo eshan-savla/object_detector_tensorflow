@@ -10,8 +10,8 @@ import os
 class ImagePublisher(Node):
 	def __init__(self):
 		super().__init__('image_publisher')
-		self.rgb_publisher = self.create_publisher(Image, 'rgb_image', 10)
-		self.depth_publisher = self.create_publisher(Image, 'depth_image', 10)
+		self.rgb_publisher = self.create_publisher(Image, '/image', 10)
+		self.depth_publisher = self.create_publisher(Image, '/stereo/depth', 10)
 		self.timer = self.create_timer(1, self.timer_callback)
 		self.bridge = CvBridge()
 
