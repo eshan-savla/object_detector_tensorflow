@@ -27,19 +27,8 @@ ROS2 Nodes for TensorFlow Object Detection Inference
    ```
 
 ## How to test:
-1. Place a test image in this folder: `./ros/object_detector_tensorflow/data/test_image.png`
-2. Or change input type in this file: `./ros/object_detector_tensorflow/object_detector_tensorflow/client.py`
-    ```python
-    # Test image empty
-    img = np.zeros([960, 1280, 3], dtype=np.uint8)
-
-    # Test image from folder
-    img = cv2.imread('/home/docker/ros2_ws/src/object_detector_tensorflow/ros/object_detector_tensorflow/data/test_image.png', 0) 
-    image = bridge.cv2_to_imgmsg(img)
-
-    # Image collected via camera driver, e.g. rc_visard_ros
-    imgage = Image(height=640, width=480, encoding="rgb8")
-    ```
+1. Place a color(rgb) image in this folder: `./ros/object_detector_tensorflow/data/test_rgb.png`
+2. Place a depth image in this folder: `./ros/object_detector_tensorflow/data/test_depth.png`
 3. Launch detection_node
     ```bash
     ros2 launch object_detector_tensorflow detection.launch.py
@@ -48,19 +37,27 @@ ROS2 Nodes for TensorFlow Object Detection Inference
     ```bash
     ros2 run object_detector_tensorflow client
     ```
+5. Run dummy image publisher
+    ```bash 
+    ros2 run object_detector_tensorflow dummy_publisher
+    ```
+The client should make a service call to the detection node and request inference. The detection node should wait for depth and color images to be published to the topics defined in the `params.yaml` file under the `config` folder. It is important to note, that the topics defined in the `params.yaml` file need to be mirrored in the `DummyPublisher.py` file under the `object_detector_tensorflow` folder.
 
-Test `detect_and_transform_node`
-```bash
-sudo code --no-sandbox --user-data-dir="/home/aip/.vscode_root/"
-ros2 launch object_detector_tensorflow detect_and_transform.launch.py
-ros2 service call /detect_and_transform_node/detect_object_and_transform object_detector_tensorflow_interfaces/srv/DetectObjectPosition "{class_name: '', base_frame: 'base', camera_type: 'roboception'}"
+```python
+class ImagePublisher(Node):
+	def __init__(self):
+		super().__init__('image_publisher')
+		self.rgb_publisher = self.create_publisher(Image, '<rgb_image_topic>', 10)
+		self.depth_publisher = self.create_publisher(Image, '<depth_image_topic>', 10)
+		self.timer = self.create_timer(1, self.timer_callback)
+		self.bridge = CvBridge()
 ```
 
 ## Interface:
 
 ### Continuous detection node
 
-- `continuous_detection_node` (ROS2 Dashing python)
+- `continuous_detection_node` (ROS2 Humble python)
 
     Node used for continuous stream of image data
 
@@ -82,9 +79,13 @@ ros2 service call /detect_and_transform_node/detect_object_and_transform object_
     ```bash
     # Detection.msg
     uint32 class_id
+    uint32 instance_id
     string class_name
     float32 probability
+    geometry_msgs/Point center
     sensor_msgs/RegionOfInterest bounding_box
+    sensor_msgs/Image mask
+    geometry_msgs/Quaternion orientation
     ```
 
 #### Parameters
@@ -95,6 +96,8 @@ Change in `ros/object_detector_tensorflow/config/params.yaml`
 saved_model_path: "data/saved_model"  # Path to TensorFlow saved model folder
 label_map_path: "data/label_map.txt"  # Text file with class names (one label per line)
 image_topic: "/image"  # ROS topic to listen for images
+depth_image_topic: "/stereo/depth"            # ROS topic to listen for depth images
+detect_hz: 0.1      # Detect and publish rate in Hz
 min_probability: 0.5            # Minimum probability for detections to be reported
 max_gpu_memory_fraction: 1.0    # Limits the GPU memory usage of the TensorFlow model to only a fraction (between 0 and 1)
 result_image_size: [640,480]    # Dimensions of the result image [x,y]
@@ -104,30 +107,31 @@ result_image_size: [640,480]    # Dimensions of the result image [x,y]
 
 ### Detection Node
 
-- `detection_node` (ROS2 Dashing python)
+- `detection_node` (ROS2 Humble python)
 
-    Node used for requests of object detection on single images
+    Node to request detection on the latest image. Returns Inference on all detected objects packaged along with the corresponding depth image. Latest detections and result image with detection annotations is also published at regular intervals.
 
 ![detection_node](docs/detection_node.svg)
 
 #### Topics
 
-- publish `continuous_detection_node/result_image` (sensor_msgs/Image)
-- publish `continuous_detection_node/detections` (custom type)
+- publish `detection_node/result_image` (sensor_msgs/Image)
+- publish `detection_node/detections` (custom type)
 
 #### Services
 
-- server `continuous_detection_node/detect_objects` (custom type)
+- server `detection_node/detect_objects` (custom type)
 
     ```bash
     # DetectObjects.srv
-    sensor_msgs/Image image
     sensor_msgs/RegionOfInterest roi
     ---
     Detections detections
     sensor_msgs/Image result_image
+    sensor_msgs/Image reference_image
     ```
-
+- Area within which inference is performed has to be provided in the request under roi. This can be used to restrict the detection area to reduce misclassifications.
+- Reference image attribute contains the corresponding depth image to the detections.
 #### Parameters
 
 Change in `ros/object_detector_tensorflow/config/params.yaml`
@@ -135,9 +139,11 @@ Change in `ros/object_detector_tensorflow/config/params.yaml`
 ```bash
 saved_model_path: "data/saved_model"  # Path to TensorFlow saved model folder
 label_map_path: "data/label_map.txt"  # Text file with class names (one label per line)
-min_probability: 0.5            # Minimum probability for detections to be reported
+image_topic: "/image"            # ROS topic to listen for images
+depth_image_topic: "/stereo/depth"            # ROS topic to listen for depth images
+min_probability: 0.95            # Minimum probability for detections to be reported
 max_gpu_memory_fraction: 1.0    # Limits the GPU memory usage of the TensorFlow model to only a fraction (between 0 and 1)
-result_image_size: [640,480]    # Dimensions of the result image [x,y]
+result_image_size: [640, 480]
 ```
 
 ## Dependencies
@@ -150,8 +156,8 @@ result_image_size: [640,480]    # Dimensions of the result image [x,y]
     pip3 install tensorflow
     sudo apt install opencv
     pip3 install numpy
-    sudo apt install ros-dashing-diagnostic-updater
-    sudo apt install ros-dashing-ros1-bridge
+    sudo apt install ros-humble-diagnostic-updater
+    sudo apt install ros-humble-ros1-bridge
 
 
 ## How to launch:
@@ -168,7 +174,7 @@ result_image_size: [640,480]    # Dimensions of the result image [x,y]
     bridge = CvBridge()
     np.zeros([960, 1280, 3], dtype=np.uint8)
     image = bridge.cv2_to_imgmsg(
-        np.zeros([960, 1280, 3], dtype=np.uint8), encoding="bgr8")
+    np.zeros([960, 1280, 3], dtype=np.uint8), encoding="bgr8")
 
 ### display test image from ROS-msgs
 
